@@ -2,6 +2,7 @@
 package se.slide.timy;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -16,6 +17,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.CalendarList;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import se.slide.timy.HoursDialog.HoursDialogListener;
@@ -25,6 +35,7 @@ import se.slide.timy.model.Category;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -68,9 +79,73 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         TitlePageIndicator mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
         mIndicator.setViewPager(mViewPager);
         
-        List<Report> reports = DatabaseManager.getInstance().getAllReports();
-        int size = reports.size();
+        tempy();
 
+    }
+    
+    public void tempy() {
+        List<Report> reports = DatabaseManager.getInstance().getAllReports();
+        //int size = reports.size();
+        
+        GoogleAccountCredential credential;
+        final com.google.api.services.calendar.Calendar client;
+        final HttpTransport transport = AndroidHttp.newCompatibleTransport();
+        final JsonFactory jsonFactory = new GsonFactory();
+        
+        // Google Accounts
+        credential = GoogleAccountCredential.usingOAuth2(this, CalendarScopes.CALENDAR);
+        credential.setSelectedAccountName("www.slide.se@gmail.com");
+        // Calendar client
+        client = new com.google.api.services.calendar.Calendar.Builder(
+            transport, jsonFactory, credential).setApplicationName("Timy/1.0")
+            .build();
+        
+        //startActivityForResult(credential.newChooseAccountIntent(), 2);
+        
+        MyAsyncTask task = new MyAsyncTask(client);
+        task.execute();
+        
+    }
+    
+    private class MyAsyncTask extends AsyncTask<Void, Void, Integer> {
+        com.google.api.services.calendar.Calendar client;
+        
+        public MyAsyncTask(com.google.api.services.calendar.Calendar client) {
+            this.client = client;
+        }
+        
+        @Override
+        protected Integer doInBackground(Void... urls) {
+            
+            try {
+                String FIELDS = "id,summary";
+                final String FEED_FIELDS = "items(" + FIELDS + ")";
+                @SuppressWarnings("unused")
+                CalendarList feed = client.calendarList().list().setFields(FEED_FIELDS).execute();
+                
+                String m = "Mike";
+                
+                
+            } catch (UserRecoverableAuthIOException e) {
+                startActivityForResult(e.getIntent(), 2);
+            }
+            catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            return 0;
+        }
+    }
+    
+    /** Check that Google Play services APK is installed and up to date. */
+    private boolean checkGooglePlayServicesAvailable() {
+      final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+      if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
+        //showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
+        return false;
+      }
+      return true;
     }
 
     @Override
@@ -105,6 +180,10 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             dialog.show(fm, "dialog_add_category");
             
             return true;
+        }
+        else if (item.getItemId() == R.id.menu_settings) {
+            startActivity(new Intent(this, SettingsActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
         }
         
         return super.onMenuItemSelected(featureId, item);
