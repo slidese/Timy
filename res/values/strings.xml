@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Timy</string>
+    <string name="title_section3">Section 3</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section1">Section 1</string>
+    
+    <string name="add_time_for">Add time for</string>
+    <string name="for_date">For date</string>
+    
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    
+    <string name="hint_add_project">Project name</string>
+    <string name="hint_add_category">Category name</string>
+    <string name="hint_comment">Comment</string>
+    
+    <string name="menu_settings">Settings</string>
+    <string name="menu_add_project">Add project</string>
+    <string name="menu_add_category">Add category</string>
+
+</resources>

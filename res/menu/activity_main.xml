@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_add_project"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:icon="@drawable/ic_action_add"
+        android:title="@string/menu_add_project"/>
+    <item
+        android:id="@+id/menu_add_category"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_add_category"/>
+    <item
+        android:id="@+id/menu_settings"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_settings"/>
+
+</menu>
