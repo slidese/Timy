@@ -1,8 +1,11 @@
 
 package se.slide.timy;
 
+import android.accounts.AccountManager;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -11,14 +14,19 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.support.v4.app.NavUtils;
 import android.text.TextUtils;
 import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
+
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.services.calendar.CalendarScopes;
 
 import java.util.List;
 
@@ -41,6 +49,8 @@ public class SettingsActivity extends PreferenceActivity {
      * shown on tablets.
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
+    
+    static final int REQUEST_ACCOUNT_PICKER = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +100,7 @@ public class SettingsActivity extends PreferenceActivity {
      * device configuration dictates that a simplified, single-pane UI should be
      * shown.
      */
+    @SuppressWarnings("deprecation")
     private void setupSimplePreferencesScreen() {
         if (!isSimplePreferences(this)) {
             return;
@@ -119,7 +130,49 @@ public class SettingsActivity extends PreferenceActivity {
         bindPreferenceSummaryToValue(findPreference("example_text"));
         bindPreferenceSummaryToValue(findPreference("example_list"));
         bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-        bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+        //bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+        
+        Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_account");
+        syncGoogleCalendarPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                String accountName = PreferenceManager
+                        .getDefaultSharedPreferences(preference.getContext())
+                        .getString(preference.getKey(), "");
+                
+                GoogleAccountCredential credential;
+                credential = GoogleAccountCredential.usingOAuth2(preference.getContext(), CalendarScopes.CALENDAR);
+                credential.setSelectedAccountName(accountName);
+                startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+                return false;
+            }
+        });
+        
+        
+        String accountName = PreferenceManager
+            .getDefaultSharedPreferences(syncGoogleCalendarPref.getContext())
+            .getString(syncGoogleCalendarPref.getKey(), "");
+        syncGoogleCalendarPref.setSummary(accountName);
+        
+        
+    }
+    
+
+    /* (non-Javadoc)
+     * @see android.preference.PreferenceActivity#onActivityResult(int, int, android.content.Intent)
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_ACCOUNT_PICKER && resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
+            String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
+            
+            Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_account");
+            syncGoogleCalendarPref.getEditor().putString("sync_google_calendar_account", accountName).commit();
+            syncGoogleCalendarPref.setSummary(accountName);
+        }
     }
 
     /** {@inheritDoc} */
