@@ -7,6 +7,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -16,6 +17,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -35,6 +37,7 @@ import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Category;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
+import se.slide.timy.service.SyncService;
 
 import java.io.IOException;
 import java.util.Date;
@@ -167,6 +170,24 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         if (item.getItemId() == R.id.menu_add_project) {
             
+            Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+            
+            if (category == null) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.add_category_first_title);
+                builder.setMessage(R.string.add_category_first_message);
+                builder.setPositiveButton(R.string.ok, new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.create().show();
+                
+                return true;
+            }
+            
             FragmentManager fm = getSupportFragmentManager();
             InputDialog dialog = InputDialog.newInstance(getString(R.string.hint_add_project), InputDialog.TYPE_PROJECT);
             dialog.show(fm, "dialog_add_project");
@@ -185,16 +206,19 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         }
         else if (item.getItemId() == R.id.menu_delete_category) {
             
-            if (deleteCategory()) {
+            if (deleteCategory() && !PreferenceManager.getDefaultSharedPreferences(this).getBoolean("never_notify_category", false)) {
                 // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                
+                builder.setView(getLayoutInflater().inflate(R.layout.nodelete_alert_dialog, null));
                 builder.setMessage(R.string.delete_category_message);
                 builder.setTitle(R.string.delete_category_title);
                 builder.setPositiveButton(getString(R.string.ok), new OnClickListener() {
                     
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        CheckBox neverNotifyMeAgain = (CheckBox) ((AlertDialog)dialog).findViewById(R.id.neverNotifyMeAgain);
+                        if (neverNotifyMeAgain.isChecked())
+                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("never_notify_category", true).commit();
                         
                         dialog.dismiss();
                     }
@@ -248,9 +272,26 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     }
 
     @Override
-    public void onFinishEditDialog(String text, int type) {
+    public void onFinishEditDialog(String text, int type, int icon) {
         if (type == InputDialog.TYPE_PROJECT) {
             Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+            
+            if (category == null) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.add_category_first_title);
+                builder.setMessage(R.string.add_category_first_message);
+                builder.setPositiveButton(R.string.ok, new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.create().show();
+                
+                return;
+            }
+            
             final int belongToCategoryId = (category == null) ? 0 : category.getId();
             
             final Project project = new Project();
@@ -349,6 +390,8 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         report.setComment(comment);
         
         DatabaseManager.getInstance().addReport(report);
+        
+        startService(new Intent(this, SyncService.class));
     }
 
     /**
@@ -371,6 +414,9 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         }
         
         public Category getCategory(int position) {
+            if (categoryList == null || categoryList.isEmpty() || position > categoryList.size())
+                return null;
+            
             return categoryList.get(position);
         }
 

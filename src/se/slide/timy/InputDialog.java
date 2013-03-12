@@ -28,7 +28,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
     private int mType = 0;
 
     public interface EditNameDialogListener {
-        void onFinishEditDialog(String text, int type);
+        void onFinishEditDialog(String text, int type, int icon);
     }
     
     public InputDialog() {
@@ -57,7 +57,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
             @Override
             public void onClick(View v) {
                 EditNameDialogListener activity = (EditNameDialogListener) getActivity();
-                activity.onFinishEditDialog(mInput.getText().toString(), mType);
+                activity.onFinishEditDialog(mInput.getText().toString(), mType, -1);
                 dismiss();
             }
         });
@@ -94,7 +94,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
         if (EditorInfo.IME_ACTION_DONE == actionId) {
             // Return input text to activity
             EditNameDialogListener activity = (EditNameDialogListener) getActivity();
-            activity.onFinishEditDialog(mInput.getText().toString(), mType);
+            activity.onFinishEditDialog(mInput.getText().toString(), mType, -1);
             this.dismiss();
             return true;
         }

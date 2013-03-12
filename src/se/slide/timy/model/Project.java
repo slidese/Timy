@@ -16,6 +16,9 @@ public class Project {
     
     @DatabaseField
     private boolean active;
+    
+    @DatabaseField
+    private int icon;
 
     /**
      * @return the name
@@ -64,6 +67,20 @@ public class Project {
      */
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    /**
+     * @return the icon
+     */
+    public int getIcon() {
+        return icon;
+    }
+
+    /**
+     * @param icon the icon to set
+     */
+    public void setIcon(int icon) {
+        this.icon = icon;
     }
     
     

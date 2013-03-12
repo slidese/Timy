@@ -12,7 +12,13 @@
     <string name="yes_reactivate">Yes, reactivate</string>
     <string name="no_create_new">No, create new</string>
     <string name="delete_category_title">How deletion works</string>
-    <string name="delete_category_message">If any projects in this category have any reports attached to them this category and those projects will only be deactivated. Otherwise everything will be deleted.\n\nThis is needed for history and syncing to function properly.</string>
+    <string name="delete_category_message">This category has not been deleted, it has been deactivated. This is because at least one of its projects have reports attached to them.\n\nProjects with no reports have been deleted. Projects with reports have been deactivated.</string>
+    <string name="delete_project_title">Not deleted?</string>
+    <string name="delete_project_message">Since this project had at least one report attached to it it could not be deleted, it has instead been deactivated. You may choose to reactivate it if you create a new project with the same name.</string>
+    <string name="never_notify_again">Don\'t notify me again</string>
+    
+    <string name="add_category_first_title">Add category first</string>
+    <string name="add_category_first_message">You need to create a category before creating any projects.</string>
     
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>

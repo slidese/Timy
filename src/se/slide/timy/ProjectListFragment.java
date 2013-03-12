@@ -1,11 +1,15 @@
 
 package se.slide.timy;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ListFragment;
 import android.view.ContextMenu;
@@ -15,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ListView;
 
 import se.slide.timy.db.DatabaseManager;
@@ -104,6 +109,28 @@ public class ProjectListFragment extends ListFragment {
                 else {
                     project.setActive(false);
                     DatabaseManager.getInstance().updateProject(project);
+                    
+                    if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("never_notify_project", false)) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                        builder.setView(getLayoutInflater(null).inflate(R.layout.nodelete_alert_dialog, null));                    
+                        builder.setMessage(R.string.delete_project_message);
+                        builder.setTitle(R.string.delete_project_title);
+                        builder.setPositiveButton(getString(R.string.ok), new OnClickListener() {
+                            
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                CheckBox neverNotifyMeAgain = (CheckBox) ((AlertDialog)dialog).findViewById(R.id.neverNotifyMeAgain);
+                                if (neverNotifyMeAgain.isChecked())
+                                    PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putBoolean("never_notify_project", true).commit();
+                                
+                                dialog.dismiss();
+                            }
+                        });
+                        
+                        builder.create().show();    
+                    }
+                    
+                    
                 }
                 
                 // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
