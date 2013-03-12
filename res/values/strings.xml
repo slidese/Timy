@@ -8,6 +8,11 @@
     
     <string name="add_time_for">Add time for</string>
     <string name="for_date">For date</string>
+    <string name="reactivate_old_project">Reactivate old project</string>
+    <string name="yes_reactivate">Yes, reactivate</string>
+    <string name="no_create_new">No, create new</string>
+    <string name="delete_category_title">How deletion works</string>
+    <string name="delete_category_message">If any projects in this category have any reports attached to them this category and those projects will only be deactivated. Otherwise everything will be deleted.\n\nThis is needed for history and syncing to function properly.</string>
     
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
@@ -19,5 +24,12 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_add_project">Add project</string>
     <string name="menu_add_category">Add category</string>
+    <string name="menu_delete_category">Delete category</string>
+    
+    <string name="listmenu_title">Edit</string>
+    <string name="listmenu_edit">Edit</string>
+    <string name="listmenu_delete">Delete</string>
+    
+    
 
 </resources>

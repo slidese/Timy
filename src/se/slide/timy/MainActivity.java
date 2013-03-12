@@ -1,6 +1,9 @@
 
 package se.slide.timy;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -8,14 +11,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -50,6 +51,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
+    TitlePageIndicator mIndicator;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -76,10 +78,10 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         //UnderlinePageIndicator titleIndicator = (UnderlinePageIndicator)findViewById(R.id.indicator);
         //titleIndicator.setViewPager(mViewPager);
         
-        TitlePageIndicator mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
+        mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
         mIndicator.setViewPager(mViewPager);
         
-        tempy();
+        //tempy();
 
     }
     
@@ -181,6 +183,31 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             
             return true;
         }
+        else if (item.getItemId() == R.id.menu_delete_category) {
+            
+            if (deleteCategory()) {
+                // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                
+                builder.setMessage(R.string.delete_category_message);
+                builder.setTitle(R.string.delete_category_title);
+                builder.setPositiveButton(getString(R.string.ok), new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        
+                        dialog.dismiss();
+                    }
+                });
+                
+                builder.create().show();
+            }
+            
+            mSectionsPagerAdapter.updateCategoryList();
+            mIndicator.notifyDataSetChanged();
+            
+            
+        }
         else if (item.getItemId() == R.id.menu_settings) {
             startActivity(new Intent(this, SettingsActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
@@ -188,30 +215,128 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         return super.onMenuItemSelected(featureId, item);
     }
+    
+    public boolean deleteCategory() {
+        boolean haveReports = false;
+        
+        Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+        List<Project> projectList = DatabaseManager.getInstance().getAllProjects(category.getId());
+        for (int i = 0; i < projectList.size(); i++) {
+            Project project = projectList.get(i);
+            List<Report> reports = DatabaseManager.getInstance().getAllReports(project.getId());
+            
+            if (reports == null || reports.size() == 0) {
+                DatabaseManager.getInstance().deleteProject(project);
+            }
+            else {
+                haveReports = true;
+                project.setActive(false);
+                DatabaseManager.getInstance().updateProject(project);
+            }
+            
+        }
+        
+        if (haveReports) {
+            category.setActive(false);
+            DatabaseManager.getInstance().updateCategory(category);
+        }
+        else {
+            DatabaseManager.getInstance().deleteCategory(category);
+        }
+        
+        return haveReports;
+    }
 
     @Override
     public void onFinishEditDialog(String text, int type) {
         if (type == InputDialog.TYPE_PROJECT) {
-            Project project = new Project();
+            Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+            final int belongToCategoryId = (category == null) ? 0 : category.getId();
+            
+            final Project project = new Project();
             project.setName(text);
-            project.setBelongsToCategoryId(mViewPager.getCurrentItem());
+            project.setActive(true);
+            project.setBelongsToCategoryId(belongToCategoryId);
             
-            DatabaseManager.getInstance().addProject(project);
-            mSectionsPagerAdapter.updateCategoryList();
+            final List<Project> projectList = DatabaseManager.getInstance().getProject(text);
+            final List<Category> categoryList = DatabaseManager.getInstance().getAllCategories();
+            if (projectList.size() > 0) {
+                final CharSequence[] entries = new CharSequence[projectList.size()];
+                //final CharSequence[] categories = new CharSequence[categoryList.size()];
+                //final String[] calendarIds = new String[projectList.size()];
+                for (int i = 0; i < projectList.size(); i++) {
+                    Project oldProject = projectList.get(i);
+                    
+                    StringBuilder builder = new StringBuilder();                    
+                    for (int a = 0; a < categoryList.size(); a++) {
+                        if (categoryList.get(a).getId() == oldProject.getBelongsToCategoryId()) {
+                            builder.append(categoryList.get(a).getName());
+                            builder.append(": ");
+                            break;
+                        }
+                    }
+                    
+                    builder.append(projectList.get(i).getName());
+                    
+                    entries[i] = builder.toString();
+                    //calendarIds[i] = projectLists.get(i).getId();
+                }
+                
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.reactivate_old_project)
+                    .setSingleChoiceItems(entries, 0, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int item) {
+                        //dialogInterface.dismiss();
+                    }
+                });
+                builder.setPositiveButton(getString(R.string.yes_reactivate), new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ListView lw = ((AlertDialog)dialog).getListView();
+                        Project oldProject = projectList.get(lw.getCheckedItemPosition());
+                        oldProject.setActive(true);
+                        oldProject.setBelongsToCategoryId(belongToCategoryId);
+                        addProject(oldProject);
+                        dialog.dismiss();
+                    }
+                });
+                builder.setNegativeButton(getString(R.string.no_create_new), new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addProject(project);
+                        dialog.dismiss();
+                        
+                    }
+                });
+                builder.create().show();
+            }
+            else {
+                addProject(project);
+            }
             
-            Intent intent = new Intent()
-                .setAction(ProjectListFragment.ResponseReceiver.INTENT_ACTION_ADD_PROJECT)
-                .putExtra(ProjectListFragment.ResponseReceiver.CURRENT_PAGE, mViewPager.getCurrentItem());
-            sendBroadcast(intent);
+            
         }
         else {
             Category category = new Category();
             category.setName(text);
+            category.setActive(true);
             
             DatabaseManager.getInstance().addCategory(category);
             mSectionsPagerAdapter.updateCategoryList();
         }
         
+    }
+    
+    public void addProject(Project project) {
+        DatabaseManager.getInstance().addProject(project);
+        //mSectionsPagerAdapter.updateCategoryList();
+        
+        Intent intent = new Intent()
+            .setAction(ProjectListFragment.ResponseReceiver.INTENT_ACTION_ADD_PROJECT)
+            .putExtra(ProjectListFragment.ResponseReceiver.CURRENT_PAGE, project.getBelongsToCategoryId());
+        sendBroadcast(intent);
     }
     
     @Override
@@ -230,81 +355,46 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        //private int mNumberOfCategories = 0;
+    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
         List<Category> categoryList;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
-            //mNumberOfCategories = DatabaseManager.getInstance().getAllCategories().size();
             updateCategoryList();
             
         }
         
         public void updateCategoryList() {
-            categoryList = DatabaseManager.getInstance().getAllCategories();
+            categoryList = DatabaseManager.getInstance().getAllActiveCategories();
             notifyDataSetChanged();
+            
+        }
+        
+        public Category getCategory(int position) {
+            return categoryList.get(position);
         }
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a DummySectionFragment (defined as a static inner class
-            // below) with the page number as its lone argument.
-            
             Category category = categoryList.get(position);
             
-            Fragment fragment = ProjectListFragment.getInstance(position);
+            Fragment fragment = ProjectListFragment.getInstance(category.getId());
             return fragment;
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return categoryList.size();
+        }
+        
+        @Override
+        public int getItemPosition(Object object){
+            return PagerAdapter.POSITION_NONE;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            /*
-            switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase();
-                case 1:
-                    return getString(R.string.title_section2).toUpperCase();
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase();
-            }
-            */
-            
             return categoryList.get(position).getName();
-            
-        }
-    }
-
-    /**
-     * A dummy fragment representing a section of the app, but that simply
-     * displays dummy text.
-     */
-    public static class DummySectionFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        public static final String ARG_SECTION_NUMBER = "section_number";
-
-        public DummySectionFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            // Create a new TextView and set its text to the fragment's section
-            // number argument value.
-            TextView textView = new TextView(getActivity());
-            textView.setGravity(Gravity.CENTER);
-            textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-            return textView;
         }
     }
 

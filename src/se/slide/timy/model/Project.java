@@ -13,6 +13,9 @@ public class Project {
     
     @DatabaseField
     private int belongsToCategoryId;
+    
+    @DatabaseField
+    private boolean active;
 
     /**
      * @return the name
@@ -47,6 +50,20 @@ public class Project {
      */
     public int getId() {
         return id;
+    }
+
+    /**
+     * @return the active
+     */
+    public boolean isActive() {
+        return active;
+    }
+
+    /**
+     * @param active the active to set
+     */
+    public void setActive(boolean active) {
+        this.active = active;
     }
     
     

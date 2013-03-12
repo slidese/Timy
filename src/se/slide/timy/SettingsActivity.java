@@ -4,17 +4,19 @@ package se.slide.timy;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
@@ -25,9 +27,18 @@ import android.support.v4.app.NavUtils;
 import android.text.TextUtils;
 import android.view.MenuItem;
 
+import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.CalendarList;
+import com.google.api.services.calendar.model.CalendarListEntry;
 
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -109,31 +120,19 @@ public class SettingsActivity extends PreferenceActivity {
         // In the simplified UI, fragments are not used at all and we instead
         // use the older PreferenceActivity APIs.
 
+        PreferenceCategory fakeHeader;
+        
         // Add 'general' preferences.
-        addPreferencesFromResource(R.xml.pref_general);
-
-        // Add 'notifications' preferences, and a corresponding header.
-        PreferenceCategory fakeHeader = new PreferenceCategory(this);
-        fakeHeader.setTitle(R.string.pref_header_notifications);
-        getPreferenceScreen().addPreference(fakeHeader);
-        addPreferencesFromResource(R.xml.pref_notification);
-
+        addPreferencesFromResource(R.xml.pref_data_sync);
+        
         // Add 'data and sync' preferences, and a corresponding header.
         fakeHeader = new PreferenceCategory(this);
-        fakeHeader.setTitle(R.string.pref_header_data_sync);
+        fakeHeader.setTitle(R.string.pref_header_about);
         getPreferenceScreen().addPreference(fakeHeader);
-        addPreferencesFromResource(R.xml.pref_data_sync);
-
-        // Bind the summaries of EditText/List/Dialog/Ringtone preferences to
-        // their values. When their values change, their summaries are updated
-        // to reflect the new value, per the Android Design guidelines.
-        bindPreferenceSummaryToValue(findPreference("example_text"));
-        bindPreferenceSummaryToValue(findPreference("example_list"));
-        bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-        //bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+        addPreferencesFromResource(R.xml.pref_about);
         
-        Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_account");
-        syncGoogleCalendarPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+        Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
+        syncGoogleAccountPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             
             @Override
             public boolean onPreferenceClick(Preference preference) {
@@ -151,10 +150,120 @@ public class SettingsActivity extends PreferenceActivity {
         
         
         String accountName = PreferenceManager
-            .getDefaultSharedPreferences(syncGoogleCalendarPref.getContext())
-            .getString(syncGoogleCalendarPref.getKey(), "");
-        syncGoogleCalendarPref.setSummary(accountName);
+            .getDefaultSharedPreferences(this)
+            .getString(syncGoogleAccountPref.getKey(), "");
+        syncGoogleAccountPref.setSummary(accountName);
         
+        Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_calendar");
+        syncGoogleCalendarPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                String accountName = PreferenceManager
+                        .getDefaultSharedPreferences(preference.getContext())
+                        .getString("sync_google_calendar_account", "");
+                
+                GetCalendarsAsyncTask getCalendars = new GetCalendarsAsyncTask(accountName, SettingsActivity.this);
+                getCalendars.execute();
+                
+                return true;
+            }
+        });
+        
+        String calendarName = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString("sync_google_calendar_calendar_name", "");
+        syncGoogleCalendarPref.setSummary(calendarName);
+    }
+    
+    private class GetCalendarsAsyncTask extends AsyncTask<Void, Void, CalendarList> {
+        
+        private String accountName;
+        private WeakReference<Activity> weakActivity;
+        
+        public GetCalendarsAsyncTask(String accountName, Activity activity) {
+            this.accountName = accountName;
+            weakActivity = new WeakReference<Activity>(activity);
+        }
+        
+        @Override
+        protected CalendarList doInBackground(Void... urls) {
+            
+            try {
+                final com.google.api.services.calendar.Calendar client;
+                final HttpTransport transport = AndroidHttp.newCompatibleTransport();
+                final JsonFactory jsonFactory = new GsonFactory();
+                
+                GoogleAccountCredential credential;
+                credential = GoogleAccountCredential.usingOAuth2(weakActivity.get(), CalendarScopes.CALENDAR);
+                credential.setSelectedAccountName(accountName);
+                // Calendar client
+                client = new com.google.api.services.calendar.Calendar.Builder(
+                    transport, jsonFactory, credential).setApplicationName("Timy/1.0")
+                    .build();
+                
+                // Fire the request
+                String FIELDS = "id,summary";
+                final String FEED_FIELDS = "items(" + FIELDS + ")";
+                CalendarList feed = client.calendarList().list().setFields(FEED_FIELDS).execute();
+                
+                return feed;
+            } catch (UserRecoverableAuthIOException e) {
+                startActivityForResult(e.getIntent(), REQUEST_ACCOUNT_PICKER);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         */
+        @Override
+        protected void onPostExecute(CalendarList result) {
+            super.onPostExecute(result);
+            
+            Activity activity = weakActivity.get();
+            if (activity != null && result != null) {
+                ((SettingsActivity) activity).displayCalendarList(result);
+            }
+        }
+        
+    }
+    
+    public void displayCalendarList(CalendarList feed) {
+        List<CalendarListEntry> list = feed.getItems();
+        
+        final CharSequence[] entries = new CharSequence[list.size()];
+        final String[] calendarIds = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            entries[i] = list.get(i).getSummary();
+            calendarIds[i] = list.get(i).getId();
+        }
+
+        int calendarId = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getInt("sync_google_calendar_calendar", 0);
+        
+        if (calendarId > entries.length)
+            calendarId = 0;
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose a calendar")
+            .setSingleChoiceItems(entries, calendarId, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int item) {
+                    PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putString("sync_google_calendar_calendar_name", entries[item].toString()).commit();
+                    PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putString("sync_google_calendar_calendar_id", calendarIds[item]).commit();
+                    PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putInt("sync_google_calendar_calendar", item).commit();
+                    Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_calendar");
+                    syncGoogleCalendarPref.setSummary(entries[item]);
+                    dialogInterface.dismiss();
+                }
+            });
+
+        builder.create().show();
         
     }
     
@@ -169,9 +278,9 @@ public class SettingsActivity extends PreferenceActivity {
         if (requestCode == REQUEST_ACCOUNT_PICKER && resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
             String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
             
-            Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_account");
-            syncGoogleCalendarPref.getEditor().putString("sync_google_calendar_account", accountName).commit();
-            syncGoogleCalendarPref.setSummary(accountName);
+            Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
+            syncGoogleAccountPref.getEditor().putString("sync_google_calendar_account", accountName).commit();
+            syncGoogleAccountPref.setSummary(accountName);
         }
     }
 
@@ -238,7 +347,7 @@ public class SettingsActivity extends PreferenceActivity {
                 // using RingtoneManager.
                 if (TextUtils.isEmpty(stringValue)) {
                     // Empty values correspond to 'silent' (no ringtone).
-                    preference.setSummary(R.string.pref_ringtone_silent);
+                    //preference.setSummary(R.string.pref_ringtone_silent);
 
                 } else {
                     Ringtone ringtone = RingtoneManager.getRingtone(
@@ -300,8 +409,9 @@ public class SettingsActivity extends PreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
+            
+            //bindPreferenceSummaryToValue(findPreference("example_text"));
+            //bindPreferenceSummaryToValue(findPreference("example_list"));
         }
     }
 
@@ -314,13 +424,14 @@ public class SettingsActivity extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_notification);
+            //addPreferencesFromResource(R.xml.pref_notification);
 
             // Bind the summaries of EditText/List/Dialog/Ringtone preferences
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+            
+            //bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
         }
     }
 
@@ -339,7 +450,8 @@ public class SettingsActivity extends PreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+            
+            //bindPreferenceSummaryToValue(findPreference("sync_frequency"));
         }
     }
 }

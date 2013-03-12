@@ -1,0 +1,7 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Show filters for category"
+    android:summary="Click to choose subjects to delete"
+    android:key="filterShow" 
+    >
+
+</PreferenceScreen>

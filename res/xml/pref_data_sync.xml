@@ -1,5 +1,10 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
+    <PreferenceCategory
+        android:title="@string/pref_header_data_sync" 
+        >
+    </PreferenceCategory>
+    
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="sync_google"
@@ -13,12 +18,10 @@
         
     </Preference>
     
-    <ListPreference
+    <Preference
         android:defaultValue="-1"
         android:key="sync_google_calendar_calendar"
         android:dependency="sync_google"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
         android:title="@string/pref_title_google_calendar_calendar" />
     
 </PreferenceScreen>

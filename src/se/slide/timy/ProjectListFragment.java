@@ -8,13 +8,18 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ListFragment;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Project;
+import se.slide.timy.model.Report;
 
 import java.util.List;
 
@@ -68,11 +73,68 @@ public class ProjectListFragment extends ListFragment {
         
         mId = getArguments().getInt(EXTRA_ID);
         
+        registerForContextMenu(view);
+        
         attachAdapter();
         
         return view;
     }
     
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onContextItemSelected(android.view.MenuItem)
+     */
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        // Are we on the correct listview, check the groupId which should match the mId we set in menu.add
+        if (item.getGroupId() == mId) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+            Project project = mAdapter.getItem(info.position);
+            
+            int menuItemIndex = item.getItemId();
+            
+            if (menuItemIndex == 0) {
+                //
+            }
+            else if (menuItemIndex == 1) {
+                List<Report> reports = DatabaseManager.getInstance().getAllReports(project.getId());
+                
+                if (reports == null || reports.size() == 0) {
+                    DatabaseManager.getInstance().deleteProject(project);
+                }
+                else {
+                    project.setActive(false);
+                    DatabaseManager.getInstance().updateProject(project);
+                }
+                
+                // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
+                // Display alert dialog as for category
+                
+                mAdapter.clear();
+                mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
+                mAdapter.notifyDataSetChanged();
+            }    
+        }
+        
+        
+        
+        return super.onContextItemSelected(item);
+    }
+
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onCreateContextMenu(android.view.ContextMenu, android.view.View, android.view.ContextMenu.ContextMenuInfo)
+     */
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        Project project = mAdapter.getItem(info.position);
+        
+        menu.setHeaderTitle(getString(R.string.listmenu_title) + " " + project.getName());
+        menu.add(mId, 0, 0, getString(R.string.listmenu_edit));
+        menu.add(mId, 1, 1, getString(R.string.listmenu_delete));
+    }
+
     /* (non-Javadoc)
      * @see android.support.v4.app.ListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
      */
@@ -128,7 +190,9 @@ public class ProjectListFragment extends ListFragment {
                 mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
                 mAdapter.notifyDataSetChanged();
             }
-                
+            if (action.equals(INTENT_ACTION_CLEAR_ALL) && currentPage == mId) {
+                mAdapter.clear();
+            }
             
         }
     }

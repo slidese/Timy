@@ -81,7 +81,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
         
         if (mType == TYPE_PROJECT)
             mInput.setHint(getString(R.string.hint_add_project));
-        else if (mType == TYPE_PROJECT)
+        else if (mType == TYPE_CATEGORY)
             mInput.setHint(getString(R.string.hint_add_category));
         
         mInput.setOnEditorActionListener(this);
