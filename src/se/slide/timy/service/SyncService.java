@@ -20,6 +20,7 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
 import se.slide.timy.db.DatabaseManager;
+import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 
 import java.io.IOException;
@@ -95,10 +96,19 @@ public class SyncService extends Service {
         
     }
     
-    public void runAgain() {
-        List<Report> reports = DatabaseManager.getInstance().getAllReports();
+    public void runAgain(List<Project> projects) {
+        for (int i = 0; i < projects.size(); i++) {
+            List<Report> reports = projects.get(i).getReports();
+            
+            for (int a = 0; a < reports.size(); a++) {
+                Report report = reports.get(a);
+                report.setGoogleCalendarSync(true);
+                
+                DatabaseManager.getInstance().updateReport(report);
+            }
+        }
         
-        if (reports.size() > 0)
+        if (DatabaseManager.getInstance().haveUnsyncedReports())
             createEvents();
     }
     
@@ -106,9 +116,9 @@ public class SyncService extends Service {
         String accountName = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_account", null);
         String calendarId = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_calendar_id", null);
         
-        List<Report> reports = DatabaseManager.getInstance().getAllReports();
+        List<Project> projects = DatabaseManager.getInstance().getProjectsWithUnsyncedReports();
         
-        return new CreateCalendarEventsTask(this, accountName, calendarId, reports);
+        return new CreateCalendarEventsTask(this, accountName, calendarId, projects);
     }
 
     private class CreateCalendarEventsTask extends AsyncTask<String, Void, Integer> {
@@ -116,13 +126,13 @@ public class SyncService extends Service {
         private WeakReference<Service> weakService;
         private String accountName;
         private String calendarId;
-        private List<Report> reports;
+        private List<Project> projects;
         
-        public CreateCalendarEventsTask(Service service, String accountName, String calendarId, List<Report> reports) {
+        public CreateCalendarEventsTask(Service service, String accountName, String calendarId, List<Project> projects) {
             weakService = new WeakReference<Service>(service);
             this.accountName = accountName;
             this.calendarId = calendarId;
-            this.reports = reports;
+            this.projects = projects;
         }
         
         /* (non-Javadoc)
@@ -156,22 +166,42 @@ public class SyncService extends Service {
                 transport, jsonFactory, credential).setApplicationName("Timy/1.0")
                 .build();
             
-            for (int i = 0; i < reports.size(); i++) {
-                Report report = reports.get(i);
+            for (int i = 0; i < projects.size(); i++) {
+                Project project = projects.get(i);
+                List<Report> reports = project.getReports();
                 
-                String allDayTime = DateFormat.format("yyyy-MM-dd", report.getDate()).toString();
-                DateTime dt = new DateTime(allDayTime);    
-                
-                Event event = new Event();
-                event.setSummary("Reported: " + report.getHours() + ":" + report.getMinutes());
-                event.setStart(new EventDateTime().setDate(dt));
-                event.setEnd(new EventDateTime().setDate(dt));
-                
-                try {
-                    client.events().insert(calendarId, event).execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                for (int a = 0; a < reports.size(); a++) {
+                    Report report = reports.get(a);
+                    
+                    String allDayTime = DateFormat.format("yyyy-MM-dd", report.getDate()).toString();
+                    DateTime dt = new DateTime(allDayTime);    
+                    
+                    StringBuilder builder = new StringBuilder();
+                    builder.append(project.getName());
+                    builder.append(": ");
+                    if (report.getHours() > 0) {
+                        builder.append(report.getHours());
+                        builder.append("h");
+                    }
+                    if (report.getMinutes() > 0) {
+                        builder.append(report.getMinutes());
+                        builder.append("m");
+                    }
+                    
+                    Event event = new Event();
+                    event.setSummary(builder.toString());
+                    event.setStart(new EventDateTime().setDate(dt));
+                    event.setEnd(new EventDateTime().setDate(dt));
+                    
+                    try {
+                        client.events().insert(calendarId, event).execute();
+                        Log.d(TAG, "Created event");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return SyncService.ERROR_NETWORK;
+                    }    
                 }
+                
                 
             }
             
@@ -182,7 +212,8 @@ public class SyncService extends Service {
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
             
-            //runAgain();
+            if (result == 0)
+                runAgain(projects);
         }
     }
 

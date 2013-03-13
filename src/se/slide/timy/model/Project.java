@@ -2,7 +2,8 @@ package se.slide.timy.model;
 
 import com.j256.ormlite.field.DatabaseField;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Project {
     @DatabaseField(generatedId = true)
@@ -19,7 +20,9 @@ public class Project {
     
     @DatabaseField
     private int icon;
-
+    
+    private List<Report> reports;
+    
     /**
      * @return the name
      */
@@ -82,6 +85,26 @@ public class Project {
     public void setIcon(int icon) {
         this.icon = icon;
     }
-    
-    
+
+    /**
+     * @return the reports
+     */
+    public List<Report> getReports() {
+        if (reports == null)
+            reports = new ArrayList<Report>();
+        
+        return reports;
+    }
+
+    /**
+     * @param reports the reports to set
+     */
+    public void addReport(Report report) {
+        if (reports == null)
+            reports = new ArrayList<Report>();
+        
+        reports.add(report);
+    }
 }
+    
+    

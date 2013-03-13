@@ -22,6 +22,9 @@ public class Report {
 
     @DatabaseField
     private String comment;
+    
+    @DatabaseField
+    private boolean googleCalendarSync;
 
     /**
      * @return the projectId
@@ -98,6 +101,20 @@ public class Report {
      */
     public int getId() {
         return id;
+    }
+
+    /**
+     * @return the googleCalendarSync
+     */
+    public boolean isGoogleCalendarSync() {
+        return googleCalendarSync;
+    }
+
+    /**
+     * @param googleCalendarSync the googleCalendarSync to set
+     */
+    public void setGoogleCalendarSync(boolean googleCalendarSync) {
+        this.googleCalendarSync = googleCalendarSync;
     }
 
     

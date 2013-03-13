@@ -3,11 +3,16 @@ package se.slide.timy.db;
 
 import android.content.Context;
 
+import com.j256.ormlite.stmt.QueryBuilder;
+
 import se.slide.timy.model.Category;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class DatabaseManager {
@@ -141,6 +146,38 @@ public class DatabaseManager {
         return reportLists;
     }
     
+    public List<Project> getProjectsWithUnsyncedReports() {
+        List<Project> projects = null;
+        try {
+            List<Report> reports = getHelper().getReportDao().queryBuilder().where().eq("googleCalendarSync", false).query();
+            
+            List<Integer> reportIds = new ArrayList<Integer>();
+            for (int i = 0; i < reports.size(); i++) {
+                reportIds.add(reports.get(i).getId());
+            }
+            
+            QueryBuilder<Project, Integer> builderProject = getHelper().getProjectDao().queryBuilder();
+            builderProject.where().in("id", reportIds);
+            
+            projects = builderProject.query();
+            
+            for (int a = 0; a < projects.size(); a++) {
+                Project project = projects.get(a);
+                
+                for (int b = 0; b < reports.size(); b++) {
+                    Report report = reports.get(b);
+                    
+                    if (report.getProjectId() == project.getId())
+                        project.addReport(report);
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return projects;
+    }
+    
     public List<Report> getAllReports(int projectId) {
         List<Report> reportLists = null;
         try {
@@ -150,10 +187,57 @@ public class DatabaseManager {
         }
         return reportLists;
     }
+    
+    public boolean haveUnsyncedReports() {
+        List<Report> reports = null;
+        try {
+            reports = getHelper().getReportDao().query(getHelper().getReportDao().queryBuilder().where().eq("googleCalendarSync", false).prepare());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        if (reports == null || reports.size() < 1)
+            return false;
+        else
+            return true;
+        
+    }
+    
+    public List<Report> getReport(int projectId, Date date) {
+        List<Report> reports = null;
+        try {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            
+            Date startDay = cal.getTime();
+            
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.MILLISECOND, 999);
+            
+            Date endDate = cal.getTime();
+            
+            reports = getHelper().getReportDao().query(getHelper().getReportDao().queryBuilder().where().ge("date", startDay).and().le("date", endDate).and().eq("projectId", projectId) .prepare());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reports;
+    }
 
     public void addReport(Report f) {
         try {
             getHelper().getReportDao().create(f);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void addOrUpdateReport(Report f) {
+        try {
+            getHelper().getReportDao().createOrUpdate(f);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -84,83 +84,14 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
         mIndicator.setViewPager(mViewPager);
         
-        //tempy();
-
     }
     
-    public void tempy() {
-        List<Report> reports = DatabaseManager.getInstance().getAllReports();
-        //int size = reports.size();
-        
-        GoogleAccountCredential credential;
-        final com.google.api.services.calendar.Calendar client;
-        final HttpTransport transport = AndroidHttp.newCompatibleTransport();
-        final JsonFactory jsonFactory = new GsonFactory();
-        
-        // Google Accounts
-        credential = GoogleAccountCredential.usingOAuth2(this, CalendarScopes.CALENDAR);
-        credential.setSelectedAccountName("www.slide.se@gmail.com");
-        // Calendar client
-        client = new com.google.api.services.calendar.Calendar.Builder(
-            transport, jsonFactory, credential).setApplicationName("Timy/1.0")
-            .build();
-        
-        //startActivityForResult(credential.newChooseAccountIntent(), 2);
-        
-        MyAsyncTask task = new MyAsyncTask(client);
-        task.execute();
-        
-    }
-    
-    private class MyAsyncTask extends AsyncTask<Void, Void, Integer> {
-        com.google.api.services.calendar.Calendar client;
-        
-        public MyAsyncTask(com.google.api.services.calendar.Calendar client) {
-            this.client = client;
-        }
-        
-        @Override
-        protected Integer doInBackground(Void... urls) {
-            
-            try {
-                String FIELDS = "id,summary";
-                final String FEED_FIELDS = "items(" + FIELDS + ")";
-                @SuppressWarnings("unused")
-                CalendarList feed = client.calendarList().list().setFields(FEED_FIELDS).execute();
-                
-                String m = "Mike";
-                
-                
-            } catch (UserRecoverableAuthIOException e) {
-                startActivityForResult(e.getIntent(), 2);
-            }
-            catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            
-            return 0;
-        }
-    }
-    
-    /** Check that Google Play services APK is installed and up to date. */
-    private boolean checkGooglePlayServicesAvailable() {
-      final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-      if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
-        //showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
-        return false;
-      }
-      return true;
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
     }
-    
-    
 
     /* (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onMenuItemSelected(int, android.view.MenuItem)
@@ -383,13 +314,19 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     @Override
     public void onAddHoursDialog(int projectId, int hours, int minutes, Date date, String comment) {
         Report report = new Report();
+        
+        List<Report> reports = DatabaseManager.getInstance().getReport(projectId, date);
+        if (reports.size() > 0)
+            report = reports.get(0);
+        
         report.setProjectId(projectId);
         report.setHours(hours);
         report.setMinutes(minutes);
         report.setDate(date);
         report.setComment(comment);
+        report.setGoogleCalendarSync(false);
         
-        DatabaseManager.getInstance().addReport(report);
+        DatabaseManager.getInstance().addOrUpdateReport(report);
         
         startService(new Intent(this, SyncService.class));
     }
