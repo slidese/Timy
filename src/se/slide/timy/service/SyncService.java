@@ -85,6 +85,8 @@ public class SyncService extends Service {
         if (mTask == null || retry)
             mTask = createTask();
         
+
+        
         if (!mTask.getStatus().equals(AsyncTask.Status.PENDING))
             mTask = createTask();
         

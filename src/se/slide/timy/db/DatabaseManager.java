@@ -153,7 +153,7 @@ public class DatabaseManager {
             
             List<Integer> reportIds = new ArrayList<Integer>();
             for (int i = 0; i < reports.size(); i++) {
-                reportIds.add(reports.get(i).getId());
+                reportIds.add(reports.get(i).getProjectId());
             }
             
             QueryBuilder<Project, Integer> builderProject = getHelper().getProjectDao().queryBuilder();
