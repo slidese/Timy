@@ -30,13 +30,18 @@ import java.util.List;
 
 public class SyncService extends Service {
     
+    public static final int GOOD_RESULT = 0;
     public static final int ERROR_BAD_ACCOUNT = 1;
     public static final int ERROR_BAD_CALENDAR = 2;
     public static final int ERROR_NETWORK = 3;
     
     private static final String TAG = "SyncService";
 
-    public static boolean isRunning = false;
+    private boolean mIsTaskRunning;
+    
+    public int retries = 0;
+    
+    public static final int MAX_RETRIES = 10;
     
     private CreateCalendarEventsTask mTask;
 
@@ -52,7 +57,7 @@ public class SyncService extends Service {
         // ORMLite needs to be initiated
         DatabaseManager.init(this);
         
-        SyncService.isRunning = true;
+        mIsTaskRunning = false;
     }
 
     /*
@@ -63,8 +68,7 @@ public class SyncService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started service");
         
-        // Download alerts
-        createEvents();
+        createEvents(false);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -73,39 +77,37 @@ public class SyncService extends Service {
     public void onDestroy() {
         Log.d(TAG, "Destroyed service.");
         
-        SyncService.isRunning = false;
+        mIsTaskRunning = false;
     }
 
     // Uses AsyncTask to download the XML feed from the server.
-    public void createEvents() {
-        if (mTask == null)
+    public void createEvents(boolean retry) {
+        if (mTask == null || retry)
             mTask = createTask();
         
-        if (mTask.getStatus().equals(AsyncTask.Status.FINISHED)) {
-            
-            mTask = createTask(); // The task has been run once, we need to create a new
+        if (!mTask.getStatus().equals(AsyncTask.Status.PENDING))
+            mTask = createTask();
+        
+        if (!mIsTaskRunning)
             mTask.execute();
-            
-        } else if (mTask.getStatus().equals(AsyncTask.Status.PENDING)) {
-            
-            mTask.execute();
-            
-        } else if (mTask.getStatus().equals(AsyncTask.Status.RUNNING)) {
-            // If one is currently running, we don't have to run another task
-        }
         
     }
     
     public void runAgain(List<Project> projects) {
+        updateSyncedEvents(projects);
+        
+        // Check to see if we got reports added to the database while we were busy creating calendar events
+        if (DatabaseManager.getInstance().haveUnsyncedReports())
+            createEvents(false);
+    }
+    
+    public void updateSyncedEvents(List<Project> projects) {
         for (int i = 0; i < projects.size(); i++) {
             List<Report> reports = projects.get(i).getReports();
             
             for (int a = 0; a < reports.size(); a++)
                 DatabaseManager.getInstance().updateReport(reports.get(a));
         }
-        
-        if (DatabaseManager.getInstance().haveUnsyncedReports())
-            createEvents();
     }
     
     private CreateCalendarEventsTask createTask() {
@@ -138,11 +140,12 @@ public class SyncService extends Service {
         protected void onPreExecute() {
             super.onPreExecute();
             
-            
+            mIsTaskRunning = true;
         }
 
         @Override
         protected Integer doInBackground(String... urls) {
+            int result = SyncService.GOOD_RESULT;
 
             if (accountName == null)
                 return SyncService.ERROR_BAD_ACCOUNT;
@@ -213,25 +216,43 @@ public class SyncService extends Service {
                             report.setGoogleCalendarEventId(null);
                         }
                         e.printStackTrace();
-                        //return SyncService.ERROR_NETWORK;
+                        
+                        result = SyncService.ERROR_NETWORK;
+                        
                     } catch (IOException e) {
                         e.printStackTrace();
-                        //return SyncService.ERROR_NETWORK;
+                        
+                        result = SyncService.ERROR_NETWORK;
+                        
                     }   
                 }
                 
                 
             }
             
-            return 0;
+            return result;
         }
 
         @Override
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
             
-            if (result == 0)
+            mIsTaskRunning = false;
+            
+            if (result == GOOD_RESULT)
                 runAgain(projects);
+            else if (result == ERROR_NETWORK) {
+                if (retries++ < MAX_RETRIES) {
+                    Log.d(TAG, "Retry to create events");
+                    updateSyncedEvents(projects); // Comment this line to test MAX_RETRIES
+                    createEvents(true);
+                }
+                else {
+                    retries = 0;
+                    // Show notification error
+                }
+            }
+                
         }
     }
 
