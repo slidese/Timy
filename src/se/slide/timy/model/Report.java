@@ -25,6 +25,9 @@ public class Report {
     
     @DatabaseField
     private boolean googleCalendarSync;
+    
+    @DatabaseField
+    private String googleCalendarEventId;
 
     /**
      * @return the projectId
@@ -115,6 +118,20 @@ public class Report {
      */
     public void setGoogleCalendarSync(boolean googleCalendarSync) {
         this.googleCalendarSync = googleCalendarSync;
+    }
+
+    /**
+     * @return the googleCalendarEventId
+     */
+    public String getGoogleCalendarEventId() {
+        return googleCalendarEventId;
+    }
+
+    /**
+     * @param googleCalendarEventId the googleCalendarEventId to set
+     */
+    public void setGoogleCalendarEventId(String googleCalendarEventId) {
+        this.googleCalendarEventId = googleCalendarEventId;
     }
 
     

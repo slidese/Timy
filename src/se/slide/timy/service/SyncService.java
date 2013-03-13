@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
@@ -25,7 +26,6 @@ import se.slide.timy.model.Report;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Date;
 import java.util.List;
 
 public class SyncService extends Service {
@@ -100,12 +100,8 @@ public class SyncService extends Service {
         for (int i = 0; i < projects.size(); i++) {
             List<Report> reports = projects.get(i).getReports();
             
-            for (int a = 0; a < reports.size(); a++) {
-                Report report = reports.get(a);
-                report.setGoogleCalendarSync(true);
-                
-                DatabaseManager.getInstance().updateReport(report);
-            }
+            for (int a = 0; a < reports.size(); a++)
+                DatabaseManager.getInstance().updateReport(reports.get(a));
         }
         
         if (DatabaseManager.getInstance().haveUnsyncedReports())
@@ -193,13 +189,35 @@ public class SyncService extends Service {
                     event.setStart(new EventDateTime().setDate(dt));
                     event.setEnd(new EventDateTime().setDate(dt));
                     
+                    boolean update = false;
+                    if (report.getGoogleCalendarEventId() != null && report.getGoogleCalendarEventId().length() > 0) {
+                        update = true;
+                        event.setId(report.getGoogleCalendarEventId());
+                    }
+                    
                     try {
-                        client.events().insert(calendarId, event).execute();
+                        Event createdEvent = null;
+                        if (update)
+                            createdEvent = client.events().update(calendarId, report.getGoogleCalendarEventId(), event).execute();
+                        else
+                            createdEvent = client.events().insert(calendarId, event).execute();
+                        
+                        report.setGoogleCalendarEventId(createdEvent.getId());
+                        report.setGoogleCalendarSync(true);
                         Log.d(TAG, "Created event");
+                    } catch (GoogleJsonResponseException e) {
+                        if (e.getStatusCode() == 400) {
+                            Log.d(TAG, "Error creating event");
+                            
+                            // The event has most likely been manually removed, so clear the eventId
+                            report.setGoogleCalendarEventId(null);
+                        }
+                        e.printStackTrace();
+                        //return SyncService.ERROR_NETWORK;
                     } catch (IOException e) {
                         e.printStackTrace();
-                        return SyncService.ERROR_NETWORK;
-                    }    
+                        //return SyncService.ERROR_NETWORK;
+                    }   
                 }
                 
                 
