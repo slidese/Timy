@@ -111,6 +111,8 @@ public class SyncService extends Service {
     }
     
     private CreateCalendarEventsTask createTask() {
+        Log.d(TAG, "Create new task");
+        
         String accountName = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_account", null);
         String calendarId = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_calendar_id", null);
         
