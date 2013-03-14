@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -20,26 +19,17 @@ import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.ListView;
 
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.CalendarList;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import se.slide.timy.HoursDialog.HoursDialogListener;
 import se.slide.timy.InputDialog.EditNameDialogListener;
+import se.slide.timy.animations.ZoomOutPageTransformer;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Category;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 import se.slide.timy.service.SyncService;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -75,12 +65,10 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
         mViewPager.setAdapter(mSectionsPagerAdapter);
         
         //Bind the title indicator to the adapter
-        //UnderlinePageIndicator titleIndicator = (UnderlinePageIndicator)findViewById(R.id.indicator);
-        //titleIndicator.setViewPager(mViewPager);
-        
         mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
         mIndicator.setViewPager(mViewPager);
         
