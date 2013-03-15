@@ -17,6 +17,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.Colors;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
@@ -196,6 +197,14 @@ public class SyncService extends Service {
                     event.setStart(new EventDateTime().setDate(dt));
                     event.setEnd(new EventDateTime().setDate(dt));
                     
+                    /*
+                    event.set("colorRgbFormat", true);
+                    event.set("backgroundColor", "#dddddd");
+                    event.set("foregroundColor", "#ffffff");
+                    */
+                    
+                    event.setColorId("red");
+                    
                     boolean update = false;
                     if (report.getGoogleCalendarEventId() != null && report.getGoogleCalendarEventId().length() > 0) {
                         update = true;
@@ -208,6 +217,9 @@ public class SyncService extends Service {
                             createdEvent = client.events().update(calendarId, report.getGoogleCalendarEventId(), event).execute();
                         else
                             createdEvent = client.events().insert(calendarId, event).execute();
+                        
+                        //Colors colors = client.colors().get().execute();
+                        //colors.g
                         
                         report.setGoogleCalendarEventId(createdEvent.getId());
                         report.setGoogleCalendarSync(true);

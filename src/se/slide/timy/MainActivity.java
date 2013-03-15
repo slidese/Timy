@@ -67,6 +67,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        //mViewPager.setOffscreenPageLimit(0);
         
         //Bind the title indicator to the adapter
         mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);

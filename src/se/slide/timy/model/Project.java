@@ -21,6 +21,15 @@ public class Project {
     @DatabaseField
     private int icon;
     
+    @DatabaseField
+    private String colorId;
+    
+    @DatabaseField
+    private String backgroundColor;
+    
+    @DatabaseField
+    private String foregroundColor;
+    
     private List<Report> reports;
     
     /**
