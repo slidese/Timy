@@ -6,7 +6,7 @@
     </PreferenceCategory>
     
     <CheckBoxPreference
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:key="sync_google"
         android:title="@string/pref_title_google_calendar" />
     

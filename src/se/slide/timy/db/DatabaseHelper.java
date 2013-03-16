@@ -12,6 +12,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 import se.slide.timy.model.Category;
+import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 
@@ -22,6 +23,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<Project, Integer> projectDao = null;
     private Dao<Category, Integer> categoryDao = null;
     private Dao<Report, Integer> reportDao = null;
+    private Dao<Color, Integer> colorDao = null;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -33,6 +35,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Project.class);
             TableUtils.createTable(connectionSource, Category.class);
             TableUtils.createTable(connectionSource, Report.class);
+            TableUtils.createTable(connectionSource, Color.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
             throw new RuntimeException(e);
@@ -89,5 +92,16 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             }
         }
         return reportDao;
+    }
+    
+    public Dao<Color, Integer> getColorsDao() {
+        if (colorDao == null) {
+            try {
+                colorDao = getDao(Color.class);
+            } catch (java.sql.SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return colorDao;
     }
 }

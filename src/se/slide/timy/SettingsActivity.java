@@ -36,10 +36,18 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
+import com.google.api.services.calendar.model.ColorDefinition;
+import com.google.api.services.calendar.model.Colors;
+
+import se.slide.timy.db.DatabaseManager;
+import se.slide.timy.model.Color;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -166,6 +174,9 @@ public class SettingsActivity extends PreferenceActivity {
                 GetCalendarsAsyncTask getCalendars = new GetCalendarsAsyncTask(accountName, SettingsActivity.this);
                 getCalendars.execute();
                 
+                GetColorsAsyncTask getColors = new GetColorsAsyncTask(accountName, SettingsActivity.this);
+                getColors.execute();
+                
                 return true;
             }
         });
@@ -174,6 +185,80 @@ public class SettingsActivity extends PreferenceActivity {
                 .getDefaultSharedPreferences(this)
                 .getString("sync_google_calendar_calendar_name", "");
         syncGoogleCalendarPref.setSummary(calendarName);
+    }
+    
+    private class GetColorsAsyncTask extends AsyncTask<Void, Void, List<Color>> {
+
+        private String accountName;
+        private WeakReference<Activity> weakActivity;
+        
+        public GetColorsAsyncTask(String accountName, Activity activity) {
+            this.accountName = accountName;
+            weakActivity = new WeakReference<Activity>(activity);
+        }
+        
+        /* (non-Javadoc)
+         * @see android.os.AsyncTask#doInBackground(Params[])
+         */
+        @Override
+        protected List<Color> doInBackground(Void... params) {
+            try {
+                final com.google.api.services.calendar.Calendar client;
+                final HttpTransport transport = AndroidHttp.newCompatibleTransport();
+                final JsonFactory jsonFactory = new GsonFactory();
+                
+                GoogleAccountCredential credential;
+                credential = GoogleAccountCredential.usingOAuth2(weakActivity.get(), CalendarScopes.CALENDAR);
+                credential.setSelectedAccountName(accountName);
+                // Calendar client
+                client = new com.google.api.services.calendar.Calendar.Builder(
+                    transport, jsonFactory, credential).setApplicationName("Timy/1.0")
+                    .build();
+                
+                // Fire the request
+                Colors eventColors = client.colors().get().execute();
+                Set<Entry<String, ColorDefinition>> sets = eventColors.getEvent().entrySet();
+                
+                List<Color> colors = new ArrayList<Color>();
+                for (Entry<String, ColorDefinition> entry : sets) {
+                    Color color = new Color();
+                    color.setId( Integer.parseInt(entry.getKey()));
+                    
+                    ColorDefinition colorDefinitions = entry.getValue();
+                    color.setBackgroundColor(colorDefinitions.getBackground());
+                    color.setForegroundColor(colorDefinitions.getForeground());
+                    
+                    colors.add(color);
+                }
+                                
+                return colors;
+            } catch (UserRecoverableAuthIOException e) {
+                startActivityForResult(e.getIntent(), REQUEST_ACCOUNT_PICKER);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         */
+        @Override
+        protected void onPostExecute(List<Color> result) {
+            super.onPostExecute(result);
+            
+            Activity activity = weakActivity.get();
+            if (activity != null && result != null) {
+                ((SettingsActivity) activity).saveColors(result);
+            }
+        }
+        
+    }
+    
+    public void saveColors(List<Color> colors) {
+        // Save the colors..... do tomorrow, now sleep
     }
     
     private class GetCalendarsAsyncTask extends AsyncTask<Void, Void, CalendarList> {
@@ -206,6 +291,9 @@ public class SettingsActivity extends PreferenceActivity {
                 String FIELDS = "id,summary";
                 final String FEED_FIELDS = "items(" + FIELDS + ")";
                 CalendarList feed = client.calendarList().list().setFields(FEED_FIELDS).execute();
+                
+                
+                
                 
                 return feed;
             } catch (UserRecoverableAuthIOException e) {

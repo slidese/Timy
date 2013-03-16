@@ -21,6 +21,7 @@ public class HoursDialog extends DialogFragment {
     
     private EditText mInput;
     private TimePicker mTimePicker;
+    private EditText mComment;
     
     private int mProjectId = 0;
 
@@ -54,7 +55,7 @@ public class HoursDialog extends DialogFragment {
             @Override
             public void onClick(View v) {
                 HoursDialogListener activity = (HoursDialogListener) getActivity();
-                activity.onAddHoursDialog(mProjectId, mTimePicker.getCurrentHour(), mTimePicker.getCurrentMinute(), new Date(), "");
+                activity.onAddHoursDialog(mProjectId, mTimePicker.getCurrentHour(), mTimePicker.getCurrentMinute(), new Date(), mComment.getText().toString());
                 dismiss();
             }
         });
@@ -79,6 +80,8 @@ public class HoursDialog extends DialogFragment {
         mInput.setHint(getString(R.string.hint_comment));
         mInput.setOnEditorActionListener(this);
         */
+        
+        mComment = (EditText) view.findViewById(R.id.comment);
         
         mTimePicker = (TimePicker) view.findViewById(R.id.timePicker);
         mTimePicker.setIs24HourView(true);

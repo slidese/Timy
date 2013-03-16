@@ -194,16 +194,11 @@ public class SyncService extends Service {
                     
                     Event event = new Event();
                     event.setSummary(builder.toString());
+                    event.setDescription(report.getComment());
                     event.setStart(new EventDateTime().setDate(dt));
                     event.setEnd(new EventDateTime().setDate(dt));
                     
-                    /*
-                    event.set("colorRgbFormat", true);
-                    event.set("backgroundColor", "#dddddd");
-                    event.set("foregroundColor", "#ffffff");
-                    */
-                    
-                    event.setColorId("red");
+                    event.setColorId("10");
                     
                     boolean update = false;
                     if (report.getGoogleCalendarEventId() != null && report.getGoogleCalendarEventId().length() > 0) {
@@ -217,9 +212,6 @@ public class SyncService extends Service {
                             createdEvent = client.events().update(calendarId, report.getGoogleCalendarEventId(), event).execute();
                         else
                             createdEvent = client.events().insert(calendarId, event).execute();
-                        
-                        //Colors colors = client.colors().get().execute();
-                        //colors.g
                         
                         report.setGoogleCalendarEventId(createdEvent.getId());
                         report.setGoogleCalendarSync(true);
@@ -267,6 +259,12 @@ public class SyncService extends Service {
                     retries = 0;
                     // Show notification error
                 }
+            }
+            else if (result == ERROR_BAD_ACCOUNT) {
+                
+            }
+            else if (result == ERROR_BAD_CALENDAR) {
+                
             }
                 
         }
