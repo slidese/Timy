@@ -90,6 +90,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         if (item.getItemId() == R.id.menu_add_project) {
             
+            /*
             Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
             
             if (category == null) {
@@ -109,10 +110,12 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             }
             
             FragmentManager fm = getSupportFragmentManager();
-            InputDialog dialog = InputDialog.newInstance(getString(R.string.hint_add_project), InputDialog.TYPE_PROJECT);
+            ProjectDialog dialog = ProjectDialog.newInstance(getString(R.string.hint_add_project), ProjectDialog.TYPE_PROJECT);
             dialog.show(fm, "dialog_add_project");
+            */
             
-            
+            startActivity(new Intent(this, ProjectActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
             
             return true;
         }

@@ -258,7 +258,7 @@ public class SettingsActivity extends PreferenceActivity {
     }
     
     public void saveColors(List<Color> colors) {
-        // Save the colors..... do tomorrow, now sleep
+        DatabaseManager.getInstance().saveColors(colors);
     }
     
     private class GetCalendarsAsyncTask extends AsyncTask<Void, Void, CalendarList> {

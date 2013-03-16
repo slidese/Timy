@@ -6,6 +6,7 @@ import android.content.Context;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 import se.slide.timy.model.Category;
+import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 
@@ -258,5 +259,25 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
+    
+    public void saveColors(List<Color> colors) {
+        try { 
+            for (int i = 0; i < colors.size(); i++) {
+                Color color = colors.get(i);
+                getHelper().getColorsDao().createOrUpdate(color);    
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public List<Color> getColors() {
+        List<Color> colors = null;
+        try {
+            colors = getHelper().getColorsDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return colors;
+    }
 }
