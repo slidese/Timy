@@ -55,11 +55,13 @@ public class ProjectArrayAdapter extends ArrayAdapter<Project> {
         
         holder.name.setText(project.getName());
         
+        /*
         Animation animation = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
         animation.setDuration(300);
         animation.setStartOffset(position * 100);
         
         convertView.startAnimation(animation);
+        */
         
         return convertView;
     }
