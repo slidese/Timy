@@ -84,8 +84,8 @@ public class ProjectDialog extends DialogFragment implements OnEditorActionListe
         });
         
         List<Color> colors = DatabaseManager.getInstance().getColors();
-        GridView gridview = (GridView) view.findViewById(R.id.gridview);
-        gridview.setAdapter(new ColorAdapter(getActivity(), colors));
+        //GridView gridview = (GridView) view.findViewById(R.id.gridview);
+        //gridview.setAdapter(new ColorAdapter(getActivity(), colors));
         
         mTitle = getArguments().getString(EXTRA_TITLE);
         mType = getArguments().getInt(EXTRA_HINT);

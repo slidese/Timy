@@ -22,6 +22,9 @@
     
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
+    
+    <string name="project_color">Select project color</string>
     
     <string name="hint_add_project">Project name</string>
     <string name="hint_add_category">Category name</string>
