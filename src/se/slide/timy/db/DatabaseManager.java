@@ -280,4 +280,17 @@ public class DatabaseManager {
         }
         return colors;
     }
+    
+    public List<Color> getColor(String colorId) {
+        if (colorId == null || colorId.length() < 1)
+            return new ArrayList<Color>();
+        
+        List<Color> colors = null;
+        try {
+            colors = getHelper().getColorsDao().query(getHelper().getColorsDao().queryBuilder().where().eq("id", colorId).prepare());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return colors;
+    }
 }

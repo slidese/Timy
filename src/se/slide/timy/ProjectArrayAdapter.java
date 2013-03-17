@@ -2,17 +2,16 @@ package se.slide.timy;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import se.slide.timy.db.DatabaseManager;
+import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
 
 import java.util.List;
@@ -45,7 +44,7 @@ public class ProjectArrayAdapter extends ArrayAdapter<Project> {
             holder = new ViewHolder();
             holder.name = (TextView) convertView.findViewById(R.id.name);
             //holder.time = (TextView) convertView.findViewById(R.id.alertTime);
-            //holder.frameLayout = (FrameLayout) convertView.findViewById(R.id.frameLayout);
+            holder.color = (FrameLayout) convertView.findViewById(R.id.color);
             //holder.icon = (ImageView) convertView.findViewById(R.id.imageView1);
             convertView.setTag(holder);
             
@@ -54,6 +53,10 @@ public class ProjectArrayAdapter extends ArrayAdapter<Project> {
             holder = (ViewHolder) convertView.getTag();
         
         holder.name.setText(project.getName());
+        
+        List<Color> colors = DatabaseManager.getInstance().getColor(project.getColorId());
+        if (colors.size() > 0)
+            holder.color.setBackgroundColor(android.graphics.Color.parseColor(colors.get(0).getBackgroundColor()));
         
         /*
         Animation animation = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
@@ -72,7 +75,7 @@ public class ProjectArrayAdapter extends ArrayAdapter<Project> {
     private class ViewHolder {
         TextView name;
         TextView time;
-        FrameLayout frameLayout;
+        FrameLayout color;
         ImageView icon;
     }
 }

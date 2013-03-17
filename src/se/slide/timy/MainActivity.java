@@ -114,8 +114,8 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             dialog.show(fm, "dialog_add_project");
             */
             
-            startActivity(new Intent(this, ProjectActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            startActivityForResult(new Intent(this, ProjectActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), ProjectActivity.ACTIVITY_CODE);
             
             return true;
         }
@@ -163,6 +163,110 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         return super.onMenuItemSelected(featureId, item);
     }
     
+    /* (non-Javadoc)
+     * @see android.support.v4.app.FragmentActivity#onActivityResult(int, int, android.content.Intent)
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == ProjectActivity.ACTIVITY_CODE) {
+            if (resultCode == RESULT_OK) {
+                String name = data.getStringExtra(ProjectActivity.EXTRA_PROJECT_NAME);
+                String colorId = data.getStringExtra(ProjectActivity.EXTRA_PROJECT_COLOR_ID);
+                
+                addProject(name, colorId);
+            }
+        }
+        
+    }
+    
+    public void addProject(String name, String colorId) {
+        Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+        
+        if (category == null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.add_category_first_title);
+            builder.setMessage(R.string.add_category_first_message);
+            builder.setPositiveButton(R.string.ok, new OnClickListener() {
+                
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.create().show();
+            
+            return;
+        }
+        
+        final int belongToCategoryId = (category == null) ? 0 : category.getId();
+        
+        final Project project = new Project();
+        project.setName(name);
+        project.setColorId(colorId);
+        project.setActive(true);
+        project.setBelongsToCategoryId(belongToCategoryId);
+        
+        final List<Project> projectList = DatabaseManager.getInstance().getProject(name);
+        final List<Category> categoryList = DatabaseManager.getInstance().getAllCategories();
+        if (projectList.size() > 0) {
+            final CharSequence[] entries = new CharSequence[projectList.size()];
+            //final CharSequence[] categories = new CharSequence[categoryList.size()];
+            //final String[] calendarIds = new String[projectList.size()];
+            for (int i = 0; i < projectList.size(); i++) {
+                Project oldProject = projectList.get(i);
+                
+                StringBuilder builder = new StringBuilder();                    
+                for (int a = 0; a < categoryList.size(); a++) {
+                    if (categoryList.get(a).getId() == oldProject.getBelongsToCategoryId()) {
+                        builder.append(categoryList.get(a).getName());
+                        builder.append(": ");
+                        break;
+                    }
+                }
+                
+                builder.append(projectList.get(i).getName());
+                
+                entries[i] = builder.toString();
+                //calendarIds[i] = projectLists.get(i).getId();
+            }
+            
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.reactivate_old_project)
+                .setSingleChoiceItems(entries, 0, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int item) {
+                    //dialogInterface.dismiss();
+                }
+            });
+            builder.setPositiveButton(getString(R.string.yes_reactivate), new OnClickListener() {
+                
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    ListView lw = ((AlertDialog)dialog).getListView();
+                    Project oldProject = projectList.get(lw.getCheckedItemPosition());
+                    oldProject.setActive(true);
+                    oldProject.setBelongsToCategoryId(belongToCategoryId);
+                    addProject(oldProject);
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton(getString(R.string.no_create_new), new OnClickListener() {
+                
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    addProject(project);
+                    dialog.dismiss();
+                    
+                }
+            });
+            builder.create().show();
+        }
+        else {
+            addProject(project);
+        }
+    }
+
     public boolean deleteCategory() {
         boolean haveReports = false;
         

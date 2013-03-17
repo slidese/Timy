@@ -114,6 +114,22 @@ public class Project {
         
         reports.add(report);
     }
+
+    /**
+     * @return the colorId
+     */
+    public String getColorId() {
+        return colorId;
+    }
+
+    /**
+     * @param colorId the colorId to set
+     */
+    public void setColorId(String colorId) {
+        this.colorId = colorId;
+    }
+    
+    
 }
     
     

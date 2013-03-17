@@ -1,6 +1,7 @@
 package se.slide.timy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -23,7 +25,16 @@ import java.util.List;
 
 public class ProjectActivity extends FragmentActivity {
     
+    public static final int ACTIVITY_CODE = 0;
+    
+    private int mPosition = 0;
+    
+    public static final String EXTRA_PROJECT_NAME = "project_name";
+    public static final String EXTRA_PROJECT_COLOR_ID = "project_colorid";
+    
+    ColorAdapter mAdapter;
     ImageView mCheckmark;
+    EditText mName;
 
     /* (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onCreate(android.os.Bundle)
@@ -42,9 +53,11 @@ public class ProjectActivity extends FragmentActivity {
         ListView list = (ListView) findViewById(R.id.colorlist);
         list.setAdapter(new ColorAdapter(this, colors));
         */
+        
+        mName = (EditText) findViewById(R.id.name);
 
         GridView gridview = (GridView) findViewById(R.id.gridview);
-        ColorAdapter mAdapter = new ColorAdapter(this, colors);
+        mAdapter = new ColorAdapter(this, colors);
         gridview.setAdapter(mAdapter);
         
         gridview.setOnItemClickListener(new OnItemClickListener() {
@@ -56,6 +69,7 @@ public class ProjectActivity extends FragmentActivity {
                 mCheckmark = (ImageView) v.findViewById(R.id.checkmark);
                 mCheckmark.setVisibility(View.VISIBLE);
                 
+                mPosition = position;
             }
         });
        
@@ -84,6 +98,18 @@ public class ProjectActivity extends FragmentActivity {
                 // that hierarchy.
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.menu_cancel:
+                finishActivity(RESULT_CANCELED);
+                finish();
+                return true;
+            case R.id.menu_done:
+                Intent result = new Intent();
+                result.putExtra(EXTRA_PROJECT_NAME, mName.getText().toString());
+                result.putExtra(EXTRA_PROJECT_COLOR_ID, mAdapter.getColor(mPosition).getId());
+                setResult(RESULT_OK, result);
+                finishActivity(RESULT_OK);
+                finish();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -97,6 +123,10 @@ public class ProjectActivity extends FragmentActivity {
             mColors = colors;
         }
 
+        public Color getColor(int id) {
+            return mColors.get(id);
+        }
+        
         public int getCount() {
             return mColors.size();
         }

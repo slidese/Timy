@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -29,6 +30,8 @@ import se.slide.timy.model.Report;
 import java.util.List;
 
 public class ProjectListFragment extends ListFragment {
+    
+    private static final String TAG = "ProjectListFragment";
     
     public static final String EXTRA_ID = "id";
     
@@ -60,14 +63,53 @@ public class ProjectListFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
+        
+        //mAdapter.clear();
+        //mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
+        //mAdapter.notifyDataSetChanged();
+        
         registerReceiver();
         //attachAdapter();
+        
+        Log.d(TAG, "Resume");
+    }
+    
+    
+
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onDetach()
+     */
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        
+        Log.d(TAG, "Detach");
+    }
+
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onStop()
+     */
+    @Override
+    public void onStop() {
+        super.onStop();
+        
+        Log.d(TAG, "Stoping");
     }
 
     @Override
     public void onPause() {
         super.onPause();
         unregisterReceiver();
+    }
+
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onStart()
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        
+        Log.d(TAG, "Starting");
     }
 
     @Override

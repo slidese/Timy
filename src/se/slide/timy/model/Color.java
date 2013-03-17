@@ -4,7 +4,7 @@ import com.j256.ormlite.field.DatabaseField;
 
 public class Color {
     @DatabaseField(id = true)
-    private int id;
+    private String id;
     
     @DatabaseField
     private String backgroundColor;
@@ -15,14 +15,14 @@ public class Color {
     /**
      * @return the id
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 
     /**
      * @param id the id to set
      */
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -222,7 +222,7 @@ public class SettingsActivity extends PreferenceActivity {
                 List<Color> colors = new ArrayList<Color>();
                 for (Entry<String, ColorDefinition> entry : sets) {
                     Color color = new Color();
-                    color.setId( Integer.parseInt(entry.getKey()));
+                    color.setId(entry.getKey());
                     
                     ColorDefinition colorDefinitions = entry.getValue();
                     color.setBackgroundColor(colorDefinitions.getBackground());

@@ -17,11 +17,11 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.Colors;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
 import se.slide.timy.db.DatabaseManager;
+import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
 
@@ -120,8 +120,9 @@ public class SyncService extends Service {
         String calendarId = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_calendar_id", null);
         
         List<Project> projects = DatabaseManager.getInstance().getProjectsWithUnsyncedReports();
+        List<Color> colors = DatabaseManager.getInstance().getColors();
         
-        return new CreateCalendarEventsTask(this, accountName, calendarId, projects);
+        return new CreateCalendarEventsTask(this, accountName, calendarId, projects, colors);
     }
 
     private class CreateCalendarEventsTask extends AsyncTask<String, Void, Integer> {
@@ -130,12 +131,14 @@ public class SyncService extends Service {
         private String accountName;
         private String calendarId;
         private List<Project> projects;
+        private List<Color> colors;
         
-        public CreateCalendarEventsTask(Service service, String accountName, String calendarId, List<Project> projects) {
+        public CreateCalendarEventsTask(Service service, String accountName, String calendarId, List<Project> projects, List<Color> colors) {
             weakService = new WeakReference<Service>(service);
             this.accountName = accountName;
             this.calendarId = calendarId;
             this.projects = projects;
+            this.colors = colors;
         }
         
         /* (non-Javadoc)
@@ -198,7 +201,17 @@ public class SyncService extends Service {
                     event.setStart(new EventDateTime().setDate(dt));
                     event.setEnd(new EventDateTime().setDate(dt));
                     
-                    event.setColorId("10");
+                    // We need to deal with bad colorIds
+                    int colorId = -1;
+                    try {
+                        colorId = Integer.valueOf(project.getColorId());    
+                    }
+                    catch (NumberFormatException e) {
+                        Log.w(TAG, "Bad color id, using default color");
+                    }
+                    
+                    if (colorId > 0 && colorId <= colors.size())
+                        event.setColorId(project.getColorId());
                     
                     boolean update = false;
                     if (report.getGoogleCalendarEventId() != null && report.getGoogleCalendarEventId().length() > 0) {
@@ -222,6 +235,7 @@ public class SyncService extends Service {
                             
                             // The event has most likely been manually removed, so clear the eventId
                             report.setGoogleCalendarEventId(null);
+                            
                         }
                         e.printStackTrace();
                         
