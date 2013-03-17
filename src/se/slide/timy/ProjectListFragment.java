@@ -36,6 +36,9 @@ public class ProjectListFragment extends ListFragment {
     
     public static final String EXTRA_ID = "id";
     
+    public static final int MENU_EDIT = 0;
+    public static final int MENU_DELETE = 1;
+    
     private int mId;
     private ResponseReceiver mReceiver;
     private ProjectArrayAdapter mAdapter;
@@ -149,10 +152,13 @@ public class ProjectListFragment extends ListFragment {
             
             int menuItemIndex = item.getItemId();
             
-            if (menuItemIndex == 0) {
+            if (menuItemIndex == MENU_EDIT) {
                 //
+                Intent i = new Intent(getActivity(), ProjectActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                i.putExtra(ProjectActivity.EXTRA_PROJECT_ID, project.getId());
+                startActivityForResult(i, ProjectActivity.ACTIVITY_CODE);
             }
-            else if (menuItemIndex == 1) {
+            else if (menuItemIndex == MENU_DELETE) {
                 List<Report> reports = DatabaseManager.getInstance().getAllReports(project.getId());
                 
                 if (reports == null || reports.size() == 0) {
@@ -210,8 +216,41 @@ public class ProjectListFragment extends ListFragment {
         Project project = mAdapter.getItem(info.position);
         
         menu.setHeaderTitle(getString(R.string.listmenu_title) + " " + project.getName());
-        menu.add(mId, 0, 0, getString(R.string.listmenu_edit));
-        menu.add(mId, 1, 1, getString(R.string.listmenu_delete));
+        menu.add(mId, MENU_EDIT, 0, getString(R.string.listmenu_edit));
+        menu.add(mId, MENU_DELETE, 1, getString(R.string.listmenu_delete));
+    }
+
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onActivityResult(int, int, android.content.Intent)
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == ProjectActivity.ACTIVITY_CODE) {
+            if (resultCode == getActivity().RESULT_OK) {
+                String name = data.getStringExtra(ProjectActivity.EXTRA_PROJECT_NAME);
+                String colorId = data.getStringExtra(ProjectActivity.EXTRA_PROJECT_COLOR_ID);
+                int id = data.getIntExtra(ProjectActivity.EXTRA_PROJECT_ID, -1);
+                
+                List<Project> projects = DatabaseManager.getInstance().getProject(id);
+                
+                if (projects.size() > 0) {
+                    Project project = projects.get(0);
+                    project.setName(name);
+                    project.setColorId(colorId);
+                    
+                    DatabaseManager.getInstance().updateProject(project);
+                    
+                    resetAdapter();
+                }
+                else {
+                    // We should always have an existing project
+                }
+                
+                
+            }
+        }
     }
 
     /* (non-Javadoc)

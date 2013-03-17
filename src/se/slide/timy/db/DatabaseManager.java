@@ -39,34 +39,44 @@ public class DatabaseManager {
     }
 
     public List<Project> getAllProjects() {
-        List<Project> projectLists = null;
+        List<Project> projects = null;
         try {
-            projectLists = getHelper().getProjectDao().queryForAll();
+            projects = getHelper().getProjectDao().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return projectLists;
+        return projects;
     }
     
     public List<Project> getAllProjects(int categoryId) {
-        List<Project> projectLists = null;
+        List<Project> projects = null;
         try {
-            projectLists = getHelper().getProjectDao().query(getHelper().getProjectDao().queryBuilder().where().eq("belongsToCategoryId", categoryId).and().eq("active", true).prepare());
+            projects = getHelper().getProjectDao().query(getHelper().getProjectDao().queryBuilder().where().eq("belongsToCategoryId", categoryId).and().eq("active", true).prepare());
             //alertLists = getHelper().getAlertDao().query(getHelper().getAlertDao().queryBuilder().where().like("level", "warning").and().ge("timeStamp", timestamp).and().eq("clearedTimesStamp", -1).prepare());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return projectLists;
+        return projects;
     }
     
     public List<Project> getProject(String name) {
-        List<Project> projectLists = null;
+        List<Project> projects = null;
         try {
-            projectLists = getHelper().getProjectDao().query(getHelper().getProjectDao().queryBuilder().where().eq("name", name).and().eq("active", false).prepare());
+            projects = getHelper().getProjectDao().query(getHelper().getProjectDao().queryBuilder().where().eq("name", name).and().eq("active", false).prepare());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return projectLists;
+        return projects;
+    }
+    
+    public List<Project> getProject(int id) {
+        List<Project> projects = null;
+        try {
+            projects = getHelper().getProjectDao().query(getHelper().getProjectDao().queryBuilder().where().eq("id", id).prepare());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return projects;
     }
 
     public void addProject(Project f) {

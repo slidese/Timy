@@ -17,9 +17,11 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
+import se.slide.timy.model.Project;
 
 import java.util.List;
 
@@ -29,19 +31,21 @@ public class ProjectActivity extends FragmentActivity {
     
     private int mPosition = 0;
     
+    public static final String EXTRA_PROJECT_ID = "project_id";
     public static final String EXTRA_PROJECT_NAME = "project_name";
     public static final String EXTRA_PROJECT_COLOR_ID = "project_colorid";
     
     ColorAdapter mAdapter;
     ImageView mCheckmark;
     EditText mName;
+    Project mProject;
 
     /* (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onCreate(android.os.Bundle)
      */
     @Override
-    protected void onCreate(Bundle arg0) {
-        super.onCreate(arg0);
+    protected void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
         
         DatabaseManager.init(this);
         
@@ -49,15 +53,23 @@ public class ProjectActivity extends FragmentActivity {
         
         List<Color> colors = DatabaseManager.getInstance().getColors();
         
-        /*
-        ListView list = (ListView) findViewById(R.id.colorlist);
-        list.setAdapter(new ColorAdapter(this, colors));
-        */
+        Intent i = getIntent();
+        
+        if (i != null && i.hasExtra(EXTRA_PROJECT_ID)) {
+            int id = i.getIntExtra(EXTRA_PROJECT_ID, -1);
+            List<Project> projects = DatabaseManager.getInstance().getProject(id);
+            
+            if (projects.size() > 0)
+                mProject = projects.get(0);
+        }
         
         mName = (EditText) findViewById(R.id.name);
+        
+        if (mProject != null)
+            mName.setText(mProject.getName());
 
         GridView gridview = (GridView) findViewById(R.id.gridview);
-        mAdapter = new ColorAdapter(this, colors);
+        mAdapter = new ColorAdapter(this, colors, mProject);
         gridview.setAdapter(mAdapter);
         
         gridview.setOnItemClickListener(new OnItemClickListener() {
@@ -106,6 +118,10 @@ public class ProjectActivity extends FragmentActivity {
                 Intent result = new Intent();
                 result.putExtra(EXTRA_PROJECT_NAME, mName.getText().toString());
                 result.putExtra(EXTRA_PROJECT_COLOR_ID, mAdapter.getColor(mPosition).getId());
+                
+                if (mProject != null)
+                    result.putExtra(EXTRA_PROJECT_ID, mProject.getId());
+                
                 setResult(RESULT_OK, result);
                 finishActivity(RESULT_OK);
                 finish();
@@ -117,10 +133,12 @@ public class ProjectActivity extends FragmentActivity {
     public class ColorAdapter extends BaseAdapter {
         private Context mContext;
         private List<Color> mColors;
+        private Project mProject;
 
-        public ColorAdapter(Context c, List<Color> colors) {
+        public ColorAdapter(Context c, List<Color> colors, Project project) {
             mContext = c;
             mColors = colors;
+            mProject = project;
         }
 
         public Color getColor(int id) {
@@ -141,30 +159,35 @@ public class ProjectActivity extends FragmentActivity {
 
         // create a new ImageView for each item referenced by the Adapter
         public View getView(int position, View convertView, ViewGroup parent) {
-            //ImageView imageView;
+            ViewHolder holder = null;
             View view;
             
             if (convertView == null) {  // if it's not recycled, initialize some attributes
+                convertView = getLayoutInflater().inflate(R.layout.color_item, null);
                 
-                view = getLayoutInflater().inflate(R.layout.color_item, null);
-                FrameLayout frame = (FrameLayout) view.findViewById(R.id.color);
-              
-                frame.setBackgroundColor(android.graphics.Color.parseColor(mColors.get(position).getBackgroundColor()));
-                
-                //view = new TextView(mContext);
+                holder = new ViewHolder();
+                holder.frame = (FrameLayout) convertView.findViewById(R.id.color);
+                holder.checkmark = (ImageView) convertView.findViewById(R.id.checkmark);
+                convertView.setTag(holder);
                 
             } else {
-                //imageView = (ImageView) convertView;
-                
-                view = convertView;
+                holder = (ViewHolder) convertView.getTag();
             }
 
-            //imageView.setImageResource(mThumbIds[position]);
-            //return imageView;
+            if (mProject != null && mColors.get(position).getId().equals(mProject.getColorId())) {
+                holder.checkmark.setVisibility(View.VISIBLE);
+                mCheckmark = holder.checkmark;
+            }
             
-            //view.setText(mColors.get(position).getBackgroundColor());
+            holder.frame.setBackgroundColor(android.graphics.Color.parseColor(mColors.get(position).getBackgroundColor()));
             
-            return view;
+            return convertView;
+        }
+        
+        /* private view holder class */
+        private class ViewHolder {
+            FrameLayout frame;
+            ImageView checkmark;
         }
         
     }
