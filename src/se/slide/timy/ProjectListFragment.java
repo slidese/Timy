@@ -1,6 +1,7 @@
 
 package se.slide.timy;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -38,6 +39,12 @@ public class ProjectListFragment extends ListFragment {
     private int mId;
     private ResponseReceiver mReceiver;
     private ProjectArrayAdapter mAdapter;
+    private ProjectListInterface mActivity;
+    
+    public interface ProjectListInterface {
+        public boolean hasProjectsChanged();
+        
+    }
 
     public static final ProjectListFragment getInstance(int id) {
         ProjectListFragment fragment = new ProjectListFragment();
@@ -52,26 +59,32 @@ public class ProjectListFragment extends ListFragment {
 
     }
 
+    /* (non-Javadoc)
+     * @see android.support.v4.app.Fragment#onAttach(android.app.Activity)
+     */
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        
+        mActivity = (ProjectListInterface) activity;
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         
         mReceiver = new ResponseReceiver();
-        //registerReceiver();
     }
     
     @Override
     public void onResume() {
         super.onResume();
         
-        //mAdapter.clear();
-        //mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
-        //mAdapter.notifyDataSetChanged();
+        if (mActivity.hasProjectsChanged())
+            resetAdapter();
         
         registerReceiver();
-        //attachAdapter();
         
-        Log.d(TAG, "Resume");
     }
     
     
@@ -83,7 +96,6 @@ public class ProjectListFragment extends ListFragment {
     public void onDetach() {
         super.onDetach();
         
-        Log.d(TAG, "Detach");
     }
 
     /* (non-Javadoc)
@@ -93,7 +105,6 @@ public class ProjectListFragment extends ListFragment {
     public void onStop() {
         super.onStop();
         
-        Log.d(TAG, "Stoping");
     }
 
     @Override
@@ -109,7 +120,6 @@ public class ProjectListFragment extends ListFragment {
     public void onStart() {
         super.onStart();
         
-        Log.d(TAG, "Starting");
     }
 
     @Override
@@ -225,6 +235,12 @@ public class ProjectListFragment extends ListFragment {
                 android.R.layout.simple_list_item_1, projectList);
         
         setListAdapter(mAdapter);
+    }
+    
+    private void resetAdapter() {
+        mAdapter.clear();
+        mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
+        mAdapter.notifyDataSetChanged();
     }
     
     private void registerReceiver() {

@@ -23,6 +23,7 @@ import com.viewpagerindicator.TitlePageIndicator;
 
 import se.slide.timy.HoursDialog.HoursDialogListener;
 import se.slide.timy.InputDialog.EditNameDialogListener;
+import se.slide.timy.ProjectListFragment.ProjectListInterface;
 import se.slide.timy.animations.ZoomOutPageTransformer;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Category;
@@ -33,7 +34,7 @@ import se.slide.timy.service.SyncService;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends FragmentActivity implements EditNameDialogListener, HoursDialogListener {
+public class MainActivity extends FragmentActivity implements EditNameDialogListener, HoursDialogListener, ProjectListInterface {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -45,6 +46,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
     TitlePageIndicator mIndicator;
+    boolean hasProjectDataChanged = false;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -399,7 +401,8 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     
     public void addProject(Project project) {
         DatabaseManager.getInstance().addProject(project);
-        //mSectionsPagerAdapter.updateCategoryList();
+
+        hasProjectDataChanged = true;
         
         Intent intent = new Intent()
             .setAction(ProjectListFragment.ResponseReceiver.INTENT_ACTION_ADD_PROJECT)
@@ -426,6 +429,16 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         startService(new Intent(this, SyncService.class));
     }
+
+    /* (non-Javadoc)
+     * @see se.slide.timy.ProjectListFragment.ProjectListInterface#hasProjectsChanged()
+     */
+    @Override
+    public boolean hasProjectsChanged() {
+        return hasProjectDataChanged;
+    }
+
+
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
