@@ -69,7 +69,6 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        //mViewPager.setOffscreenPageLimit(0);
         
         //Bind the title indicator to the adapter
         mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
@@ -91,30 +90,6 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         
         if (item.getItemId() == R.id.menu_add_project) {
-            
-            /*
-            Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
-            
-            if (category == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.add_category_first_title);
-                builder.setMessage(R.string.add_category_first_message);
-                builder.setPositiveButton(R.string.ok, new OnClickListener() {
-                    
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                builder.create().show();
-                
-                return true;
-            }
-            
-            FragmentManager fm = getSupportFragmentManager();
-            ProjectDialog dialog = ProjectDialog.newInstance(getString(R.string.hint_add_project), ProjectDialog.TYPE_PROJECT);
-            dialog.show(fm, "dialog_add_project");
-            */
             
             startActivityForResult(new Intent(this, ProjectActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), ProjectActivity.ACTIVITY_CODE);

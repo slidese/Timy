@@ -191,9 +191,6 @@ public class ProjectListFragment extends ListFragment {
                     
                 }
                 
-                // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
-                // Display alert dialog as for category
-                
                 mAdapter.clear();
                 mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
                 mAdapter.notifyDataSetChanged();
