@@ -5,6 +5,7 @@ import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -70,6 +71,8 @@ public class SettingsActivity extends PreferenceActivity {
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
     
     static final int REQUEST_ACCOUNT_PICKER = 2;
+    
+    ProgressDialog mProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,11 +174,14 @@ public class SettingsActivity extends PreferenceActivity {
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString("sync_google_calendar_account", "");
                 
-                GetCalendarsAsyncTask getCalendars = new GetCalendarsAsyncTask(accountName, SettingsActivity.this);
-                getCalendars.execute();
+                if (accountName == null || accountName.length() < 1) {
+                    final Preference accountPref = findPreference("sync_google_calendar_account");
+                    accountPref.getOnPreferenceClickListener().onPreferenceClick(accountPref);
+                    
+                    return true;
+                }
                 
-                GetColorsAsyncTask getColors = new GetColorsAsyncTask(accountName, SettingsActivity.this);
-                getColors.execute();
+                getCalendarData(accountName);
                 
                 return true;
             }
@@ -195,6 +201,19 @@ public class SettingsActivity extends PreferenceActivity {
         public GetColorsAsyncTask(String accountName, Activity activity) {
             this.accountName = accountName;
             weakActivity = new WeakReference<Activity>(activity);
+        }
+        
+        /* (non-Javadoc)
+         * @see android.os.AsyncTask#onPreExecute()
+         */
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            
+            Activity activity = weakActivity.get();
+            if (activity != null) {
+                ((SettingsActivity) activity).showProgressDialog(true);    
+            }
         }
         
         /* (non-Javadoc)
@@ -252,9 +271,20 @@ public class SettingsActivity extends PreferenceActivity {
             Activity activity = weakActivity.get();
             if (activity != null && result != null) {
                 ((SettingsActivity) activity).saveColors(result);
+                ((SettingsActivity) activity).getCalendars(accountName);
             }
         }
         
+    }
+    
+    public void showProgressDialog(boolean show) {
+        if (show) {
+            mProgress = ProgressDialog.show(this, getString(R.string.please_wait), getString(R.string.getting_calendar_info), true);
+        }
+        else {
+            if (mProgress != null && mProgress.isShowing())
+                mProgress.dismiss();
+        }
     }
     
     public void saveColors(List<Color> colors) {
@@ -315,10 +345,22 @@ public class SettingsActivity extends PreferenceActivity {
             
             Activity activity = weakActivity.get();
             if (activity != null && result != null) {
+                ((SettingsActivity) activity).showProgressDialog(false);
                 ((SettingsActivity) activity).displayCalendarList(result);
             }
         }
         
+    }
+    
+    public void getCalendarData(String accountName) {
+        GetColorsAsyncTask getColors = new GetColorsAsyncTask(accountName, SettingsActivity.this);
+        getColors.execute();
+        
+    }
+    
+    public void getCalendars(String accountName) {
+        GetCalendarsAsyncTask getCalendars = new GetCalendarsAsyncTask(accountName, SettingsActivity.this);
+        getCalendars.execute();
     }
     
     public void displayCalendarList(CalendarList feed) {

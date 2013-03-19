@@ -16,7 +16,8 @@ import android.widget.TextView.OnEditorActionListener;
 public class InputDialog extends DialogFragment implements OnEditorActionListener {
     
     public static final String EXTRA_TITLE = "title";
-    public static final String EXTRA_HINT = "hint";
+    public static final String EXTRA_CATEGORY_ID = "category_id";
+    public static final String EXTRA_CATEGORY_NAME = "category_name";
     
     public static final int TYPE_PROJECT = 0;
     public static final int TYPE_CATEGORY = 1;
@@ -25,22 +26,24 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
     
     private EditText mInput;
     
-    private int mType = 0;
+    private int mCategoryId = 0;
+    private String mCategoryName = "";
 
     public interface EditNameDialogListener {
-        void onFinishEditDialog(String text, int type, int icon);
+        void onFinishEditDialog(String text, int categoryId, int icon);
     }
     
     public InputDialog() {
         
     }
     
-    public static final InputDialog newInstance(String title, int type)
+    public static final InputDialog newInstance(String title, int categoryId, String categoryName)
     {
         InputDialog fragment = new InputDialog();
         Bundle bdl = new Bundle(2);
         bdl.putString(EXTRA_TITLE, title);
-        bdl.putInt(EXTRA_HINT, type);
+        bdl.putInt(EXTRA_CATEGORY_ID, categoryId);
+        bdl.putString(EXTRA_CATEGORY_NAME, categoryName);
         fragment.setArguments(bdl);
         
         return fragment;
@@ -60,7 +63,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
                     return;
                 
                 EditNameDialogListener activity = (EditNameDialogListener) getActivity();
-                activity.onFinishEditDialog(mInput.getText().toString(), mType, -1);
+                activity.onFinishEditDialog(mInput.getText().toString(), mCategoryId, -1);
                 dismiss();
             }
         });
@@ -76,18 +79,17 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
         });
         
         mTitle = getArguments().getString(EXTRA_TITLE);
-        mType = getArguments().getInt(EXTRA_HINT);
+        mCategoryId = getArguments().getInt(EXTRA_CATEGORY_ID);
+        mCategoryName = getArguments().getString(EXTRA_CATEGORY_NAME);
         
         getDialog().setTitle(mTitle);
         
         mInput = (EditText) view.findViewById(R.id.input);
-        
-        if (mType == TYPE_PROJECT)
-            mInput.setHint(getString(R.string.hint_add_project));
-        else if (mType == TYPE_CATEGORY)
-            mInput.setHint(getString(R.string.hint_add_category));
-        
+        mInput.setHint(getString(R.string.hint_add_category));
         mInput.setOnEditorActionListener(this);
+        
+        if (mCategoryName != null && mCategoryName.length() > 0)
+            mInput.setText(mCategoryName);
         
         return view;
     }
@@ -97,7 +99,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
         if (EditorInfo.IME_ACTION_DONE == actionId) {
             // Return input text to activity
             EditNameDialogListener activity = (EditNameDialogListener) getActivity();
-            activity.onFinishEditDialog(mInput.getText().toString(), mType, -1);
+            activity.onFinishEditDialog(mInput.getText().toString(), mCategoryId, -1);
             this.dismiss();
             return true;
         }

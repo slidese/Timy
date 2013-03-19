@@ -91,6 +91,22 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         if (item.getItemId() == R.id.menu_add_project) {
             
+            if (mViewPager.getChildCount() < 1) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.add_category_first_title);
+                builder.setMessage(R.string.add_category_first_message);
+                builder.setPositiveButton(R.string.ok, new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.create().show();
+                
+                return true;
+            }
+            
             startActivityForResult(new Intent(this, ProjectActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), ProjectActivity.ACTIVITY_CODE);
             
@@ -99,12 +115,28 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         else if (item.getItemId() == R.id.menu_add_category) {
             
             FragmentManager fm = getSupportFragmentManager();
-            InputDialog dialog = InputDialog.newInstance(getString(R.string.hint_add_category), InputDialog.TYPE_CATEGORY);
+            InputDialog dialog = InputDialog.newInstance(getString(R.string.hint_add_category), -1, null);
+            dialog.show(fm, "dialog_add_category");
+            
+            return true;
+        }
+        else if (item.getItemId() == R.id.menu_edit_category) {
+            
+            if (mViewPager.getChildCount() < 1)
+                return true;
+            
+            Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+            
+            FragmentManager fm = getSupportFragmentManager();
+            InputDialog dialog = InputDialog.newInstance(getString(R.string.hint_add_category), category.getId(), category.getName());
             dialog.show(fm, "dialog_add_category");
             
             return true;
         }
         else if (item.getItemId() == R.id.menu_delete_category) {
+            
+            if (mViewPager.getChildCount() < 1)
+                return true;
             
             if (deleteCategory() && !PreferenceManager.getDefaultSharedPreferences(this).getBoolean("never_notify_category", false)) {
                 // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
@@ -276,101 +308,22 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     }
 
     @Override
-    public void onFinishEditDialog(String text, int type, int icon) {
-        if (type == InputDialog.TYPE_PROJECT) {
-            Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
-            
-            if (category == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.add_category_first_title);
-                builder.setMessage(R.string.add_category_first_message);
-                builder.setPositiveButton(R.string.ok, new OnClickListener() {
-                    
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                builder.create().show();
-                
-                return;
-            }
-            
-            final int belongToCategoryId = (category == null) ? 0 : category.getId();
-            
-            final Project project = new Project();
-            project.setName(text);
-            project.setActive(true);
-            project.setBelongsToCategoryId(belongToCategoryId);
-            
-            final List<Project> projectList = DatabaseManager.getInstance().getProject(text);
-            final List<Category> categoryList = DatabaseManager.getInstance().getAllCategories();
-            if (projectList.size() > 0) {
-                final CharSequence[] entries = new CharSequence[projectList.size()];
-                //final CharSequence[] categories = new CharSequence[categoryList.size()];
-                //final String[] calendarIds = new String[projectList.size()];
-                for (int i = 0; i < projectList.size(); i++) {
-                    Project oldProject = projectList.get(i);
-                    
-                    StringBuilder builder = new StringBuilder();                    
-                    for (int a = 0; a < categoryList.size(); a++) {
-                        if (categoryList.get(a).getId() == oldProject.getBelongsToCategoryId()) {
-                            builder.append(categoryList.get(a).getName());
-                            builder.append(": ");
-                            break;
-                        }
-                    }
-                    
-                    builder.append(projectList.get(i).getName());
-                    
-                    entries[i] = builder.toString();
-                    //calendarIds[i] = projectLists.get(i).getId();
-                }
-                
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.reactivate_old_project)
-                    .setSingleChoiceItems(entries, 0, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int item) {
-                        //dialogInterface.dismiss();
-                    }
-                });
-                builder.setPositiveButton(getString(R.string.yes_reactivate), new OnClickListener() {
-                    
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        ListView lw = ((AlertDialog)dialog).getListView();
-                        Project oldProject = projectList.get(lw.getCheckedItemPosition());
-                        oldProject.setActive(true);
-                        oldProject.setBelongsToCategoryId(belongToCategoryId);
-                        addProject(oldProject);
-                        dialog.dismiss();
-                    }
-                });
-                builder.setNegativeButton(getString(R.string.no_create_new), new OnClickListener() {
-                    
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        addProject(project);
-                        dialog.dismiss();
-                        
-                    }
-                });
-                builder.create().show();
-            }
-            else {
-                addProject(project);
-            }
-            
-            
-        }
-        else {
-            Category category = new Category();
-            category.setName(text);
-            category.setActive(true);
-            
-            DatabaseManager.getInstance().addCategory(category);
-            mSectionsPagerAdapter.updateCategoryList();
-        }
+    public void onFinishEditDialog(String text, int categoryId, int icon) {
+        List<Category> categories = null;
+        if (categoryId > 0)
+            categories = DatabaseManager.getInstance().getCategory(categoryId);
+        
+        Category category;
+        if (categories != null && categories.size() > 0)
+            category = categories.get(0);
+        else
+            category = new Category();
+        
+        category.setName(text);
+        category.setActive(true);
+        
+        DatabaseManager.getInstance().addOrUpdate(category);
+        mSectionsPagerAdapter.updateCategoryList();
         
     }
     

@@ -39,6 +39,7 @@
         <activity
             android:name="se.slide.timy.ProjectActivity"
             android:label="@string/hint_add_project"
+            android:windowSoftInputMode="stateVisible|adjustResize|adjustPan"
             android:parentActivityName="se.slide.timy.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

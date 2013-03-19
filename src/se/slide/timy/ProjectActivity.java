@@ -17,7 +17,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
@@ -39,6 +38,7 @@ public class ProjectActivity extends FragmentActivity {
     ImageView mCheckmark;
     EditText mName;
     Project mProject;
+    GridView mGridview;
 
     /* (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onCreate(android.os.Bundle)
@@ -68,16 +68,19 @@ public class ProjectActivity extends FragmentActivity {
         if (mProject != null)
             mName.setText(mProject.getName());
 
-        GridView gridview = (GridView) findViewById(R.id.gridview);
+        mGridview = (GridView) findViewById(R.id.gridview);
         mAdapter = new ColorAdapter(this, colors, mProject);
-        gridview.setAdapter(mAdapter);
+        mGridview.setAdapter(mAdapter);
         
-        gridview.setOnItemClickListener(new OnItemClickListener() {
+        mGridview.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                if (mCheckmark != null)
-                    mCheckmark.setVisibility(View.INVISIBLE);
                 
-                //Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
+                for (int i = 0; i < mGridview.getChildCount(); i++) {
+                    View view = mGridview.getChildAt(i);
+                    ImageView image = (ImageView) view.findViewById(R.id.checkmark);
+                    image.setVisibility(View.INVISIBLE);
+                }
+                
                 mCheckmark = (ImageView) v.findViewById(R.id.checkmark);
                 mCheckmark.setVisibility(View.VISIBLE);
                 
@@ -115,6 +118,10 @@ public class ProjectActivity extends FragmentActivity {
                 finish();
                 return true;
             case R.id.menu_done:
+                
+                if (mName.getText().toString().length() < 1)
+                    return true;
+                
                 Intent result = new Intent();
                 result.putExtra(EXTRA_PROJECT_NAME, mName.getText().toString());
                 result.putExtra(EXTRA_PROJECT_COLOR_ID, mAdapter.getColor(mPosition).getId());

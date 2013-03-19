@@ -122,10 +122,28 @@ public class DatabaseManager {
         }
         return categoryLists;
     }
+    
+    public List<Category> getCategory(int id) {
+        List<Category> categories = null;
+        try {
+            categories = getHelper().getCategoryDao().query(getHelper().getCategoryDao().queryBuilder().where().eq("id", id).prepare());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
 
     public void addCategory(Category f) {
         try {
             getHelper().getCategoryDao().create(f);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void addOrUpdate(Category f) {
+        try {
+            getHelper().getCategoryDao().createOrUpdate(f);
         } catch (SQLException e) {
             e.printStackTrace();
         }
