@@ -1,9 +1,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <PreferenceCategory
+    <!-- PreferenceCategory
         android:title="@string/pref_header_data_sync" 
         >
-    </PreferenceCategory>
+    </PreferenceCategory-->
     
     <CheckBoxPreference
         android:defaultValue="false"

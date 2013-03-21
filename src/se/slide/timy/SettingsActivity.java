@@ -2,6 +2,7 @@
 package se.slide.timy;
 
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -18,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
@@ -45,7 +47,11 @@ import se.slide.timy.model.Color;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -134,14 +140,40 @@ public class SettingsActivity extends PreferenceActivity {
         PreferenceCategory fakeHeader;
         
         // Add 'general' preferences.
+        addPreferencesFromResource(R.xml.pref_general);
+        
+        fakeHeader = new PreferenceCategory(this);
+        fakeHeader.setTitle(R.string.pref_header_sync);
+        getPreferenceScreen().addPreference(fakeHeader);
         addPreferencesFromResource(R.xml.pref_data_sync);
         
-        // Add 'data and sync' preferences, and a corresponding header.
         fakeHeader = new PreferenceCategory(this);
         fakeHeader.setTitle(R.string.pref_header_about);
         getPreferenceScreen().addPreference(fakeHeader);
         addPreferencesFromResource(R.xml.pref_about);
         
+        
+        // Remind me at
+        Preference remindMeAt = findPreference("remind_me_at");
+        remindMeAt.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+            
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                String stringValue = getFormattedTime(newValue.toString());
+                preference.setSummary(stringValue);
+                return true;
+            }
+        });
+        
+        String remindMeAtSummary = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString(remindMeAt.getKey(), "");
+        
+        if (remindMeAtSummary != null && remindMeAtSummary.length() > 0) {
+            remindMeAt.setSummary(getFormattedTime(remindMeAtSummary));
+        }
+        
+        // Account
         Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
         syncGoogleAccountPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             
@@ -165,6 +197,7 @@ public class SettingsActivity extends PreferenceActivity {
             .getString(syncGoogleAccountPref.getKey(), "");
         syncGoogleAccountPref.setSummary(accountName);
         
+        // Google Calendar
         Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_calendar");
         syncGoogleCalendarPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             
@@ -191,6 +224,24 @@ public class SettingsActivity extends PreferenceActivity {
                 .getDefaultSharedPreferences(this)
                 .getString("sync_google_calendar_calendar_name", "");
         syncGoogleCalendarPref.setSummary(calendarName);
+    }
+    
+    @SuppressLint("SimpleDateFormat")
+    private String getFormattedTime(String prefTime) {
+        String[] pieces=prefTime.split(":");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(pieces[0]));
+        cal.add(Calendar.MINUTE, Integer.parseInt(pieces[1]));
+
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+        try {
+            Date time = format.parse(prefTime);
+            return SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(time);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        
+        return "";
     }
     
     private class GetColorsAsyncTask extends AsyncTask<Void, Void, List<Color>> {
