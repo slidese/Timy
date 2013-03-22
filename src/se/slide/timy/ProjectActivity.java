@@ -119,7 +119,7 @@ public class ProjectActivity extends FragmentActivity {
                 return true;
             case R.id.menu_done:
                 
-                if (mName.getText().toString().length() < 1)
+                if (mName.getText().toString().trim().length() < 1)
                     return true;
                 
                 Intent result = new Intent();

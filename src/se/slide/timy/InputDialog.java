@@ -59,7 +59,7 @@ public class InputDialog extends DialogFragment implements OnEditorActionListene
             
             @Override
             public void onClick(View v) {
-                if (mInput.getText() == null || mInput.getText().length() < 1)
+                if (mInput.getText() == null || mInput.getText().toString().trim().length() < 1)
                     return;
                 
                 EditNameDialogListener activity = (EditNameDialogListener) getActivity();
