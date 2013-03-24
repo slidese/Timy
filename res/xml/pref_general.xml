@@ -10,10 +10,13 @@
         android:dependency="remind_me"
         android:title="@string/pref_title_remind_me_at" />
     
-    <ListPreference
-        android:title="@string/pref_title_remind_me_when"
+    <MultiSelectListPreference
         android:key="remind_me_when"
+        android:dependency="remind_me"
+        android:dialogTitle="@string/pref_title_remind_me_when"
+        android:title="@string/pref_title_remind_me_when"
         android:entries="@array/pref_list_days_entries"
-        android:entryValues="@array/pref_list_days_values" />
+        android:entryValues="@array/pref_list_days_values"
+        android:defaultValue="@array/empty_array" />
 
 </PreferenceScreen>

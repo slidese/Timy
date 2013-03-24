@@ -52,6 +52,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -173,6 +175,27 @@ public class SettingsActivity extends PreferenceActivity {
             remindMeAt.setSummary(getFormattedTime(remindMeAtSummary));
         }
         
+        // Remind me at
+        Preference remindMeWhen = findPreference("remind_me_when");
+        remindMeWhen.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+            
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                @SuppressWarnings("unchecked")
+                String value = getFormattedDays((Set<String>) newValue);
+                preference.setSummary(value);
+                
+                return true;
+            }
+        });
+        
+        Set<String> values = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getStringSet(remindMeWhen.getKey(), new HashSet<String>());
+        
+        String remindMeWhenSummary = getFormattedDays(values);
+        remindMeWhen.setSummary(remindMeWhenSummary);
+        
         // Account
         Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
         syncGoogleAccountPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -242,6 +265,46 @@ public class SettingsActivity extends PreferenceActivity {
         }
         
         return "";
+    }
+    
+    private String getFormattedDays(Set<String> values) {
+        
+        StringBuilder builder = new StringBuilder();
+        if (values.contains("1"))
+            builder.append("Mon");
+        
+        if (values.contains("2")) {
+            if (builder.length() > 0)
+                builder.append(", ");
+            builder.append("Tue");
+        }
+        if (values.contains("3")) {
+            if (builder.length() > 0)
+                builder.append(", ");
+            builder.append("Wed");
+        }
+        if (values.contains("4")) {
+            if (builder.length() > 0)
+                builder.append(", ");
+            builder.append("Thu");
+        }
+        if (values.contains("5")) {
+            if (builder.length() > 0)
+                builder.append(", ");
+            builder.append("Fri");
+        }
+        if (values.contains("6")) {
+            if (builder.length() > 0)
+                builder.append(", ");
+            builder.append("Sat");
+        }
+        if (values.contains("7")) {
+            if (builder.length() > 0)
+                builder.append(", ");
+            builder.append("Sun");
+        }
+        
+        return builder.toString();
     }
     
     private class GetColorsAsyncTask extends AsyncTask<Void, Void, List<Color>> {
