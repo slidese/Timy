@@ -15,9 +15,8 @@
         android:key="sync_google_calendar_account"
         android:dependency="sync_google" >
         
-        
     </Preference>
-    
+
     <Preference
         android:defaultValue="-1"
         android:key="sync_google_calendar_calendar"
