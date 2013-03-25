@@ -46,6 +46,15 @@
                 android:value="se.slide.timy.MainActivity" />
         </activity>
         
+        <activity
+            android:name="se.slide.timy.AboutActivity"
+            android:label="@string/about"
+            android:parentActivityName="se.slide.timy.SettingsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="se.slide.timy.SettingsActivity" />
+        </activity>
+        
         <service android:enabled="true" android:name="se.slide.timy.service.SyncService" />
     </application>
 
