@@ -25,8 +25,10 @@
     <string name="done">Done</string>
     <string name="please_wait">Please wait</string>
     <string name="about">About</string>
+    <string name="acknowledgements">Acknowledgements</string>
+    
     <string name="copyright">&#169; 2013 Mike</string>
-    <string name="getting_calendar_info">Getting calendar info...</string>
+    <string name="getting_calendar_info">Getting calendar info &#8230;</string>
     
     <string name="project_color">Select project color</string>
     

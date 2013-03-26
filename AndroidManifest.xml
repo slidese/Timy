@@ -55,6 +55,15 @@
                 android:value="se.slide.timy.SettingsActivity" />
         </activity>
         
+        <activity
+            android:name="se.slide.timy.AcknowledgementsActivity"
+            android:label="@string/acknowledgements"
+            android:parentActivityName="se.slide.timy.SettingsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="se.slide.timy.SettingsActivity" />
+        </activity>
+        
         <service android:enabled="true" android:name="se.slide.timy.service.SyncService" />
     </application>
 
