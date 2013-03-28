@@ -27,6 +27,16 @@
     <string name="about">About</string>
     <string name="acknowledgements">Acknowledgements</string>
     
+    <string-array name="ack_list">
+        <item>OrmLite is used for a simple approach to databas mapping. You can find it here: http://ormlite.com/</item>
+        <item>The TimePreference dialog was borrowed from CommonsWare here: https://github.com/commonsguy/cw-lunchlist/blob/master/19-Alarm/LunchList/src/apt/tutorial/TimePreference.java</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+    
     <string name="copyright">&#169; 2013 Mike</string>
     <string name="getting_calendar_info">Getting calendar info &#8230;</string>
     

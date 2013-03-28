@@ -2,6 +2,7 @@ package se.slide.timy;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.text.Html;
 import android.util.TypedValue;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,16 +20,22 @@ public class AcknowledgementsActivity extends FragmentActivity {
         
         LinearLayout layout = (LinearLayout) findViewById(R.id.acknowledgements);
         
-        TextView line;
-        line = new TextView(this);
-        line.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        line.setTextAppearance(this, android.R.attr.textAppearanceMedium);
+        String[] ackList = getResources().getStringArray(R.array.ack_list);
+        for (String ack : ackList) {
+            TextView line = createTextView();
+            line.setText(Html.fromHtml(ack));
+            layout.addView(line, layout.getChildCount());
+        }
         
-        // Loop string array with HTML formatted strings
         
-        line.setText("Used frame work version 1.0");
-        
-        layout.addView(line);
     }
 
+    private TextView createTextView() {
+        TextView line = new TextView(this);
+        line.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        line.setTextAppearance(this, android.R.attr.textAppearanceMedium);
+        line.setPadding(0, 10, 0, 10);
+        
+        return line;
+    }
 }
