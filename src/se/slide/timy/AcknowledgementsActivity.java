@@ -20,6 +20,8 @@ public class AcknowledgementsActivity extends FragmentActivity {
         
         LinearLayout layout = (LinearLayout) findViewById(R.id.acknowledgements);
         
+        // This should be used in an ordinary adapter instead.
+        
         String[] ackList = getResources().getStringArray(R.array.ack_list);
         for (String ack : ackList) {
             TextView line = createTextView();
