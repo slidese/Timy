@@ -10,6 +10,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ListFragment;
@@ -37,7 +38,7 @@ public class ProjectListFragment extends ListFragment {
     public static final String EXTRA_ID = "id";
     
     public static final int MENU_EDIT = 0;
-    public static final int MENU_DELETE = 1;
+    public static final int MENU_REMOVE = 1;
     
     private int mId;
     private ResponseReceiver mReceiver;
@@ -148,7 +149,7 @@ public class ProjectListFragment extends ListFragment {
         // Are we on the correct listview, check the groupId which should match the mId we set in menu.add
         if (item.getGroupId() == mId) {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-            Project project = mAdapter.getItem(info.position);
+            final Project project = mAdapter.getItem(info.position);
             
             int menuItemIndex = item.getItemId();
             
@@ -158,42 +159,45 @@ public class ProjectListFragment extends ListFragment {
                 i.putExtra(ProjectActivity.EXTRA_PROJECT_ID, project.getId());
                 startActivityForResult(i, ProjectActivity.ACTIVITY_CODE);
             }
-            else if (menuItemIndex == MENU_DELETE) {
-                List<Report> reports = DatabaseManager.getInstance().getAllReports(project.getId());
-                
-                if (reports == null || reports.size() == 0) {
-                    DatabaseManager.getInstance().deleteProject(project);
-                }
-                else {
-                    project.setActive(false);
-                    DatabaseManager.getInstance().updateProject(project);
-                    
-                    if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("never_notify_project", false)) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                        builder.setView(getLayoutInflater(null).inflate(R.layout.nodelete_alert_dialog, null));                    
-                        builder.setMessage(R.string.delete_project_message);
-                        builder.setTitle(R.string.delete_project_title);
-                        builder.setPositiveButton(getString(R.string.ok), new OnClickListener() {
-                            
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                CheckBox neverNotifyMeAgain = (CheckBox) ((AlertDialog)dialog).findViewById(R.id.neverNotifyMeAgain);
-                                if (neverNotifyMeAgain.isChecked())
-                                    PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putBoolean("never_notify_project", true).commit();
-                                
-                                dialog.dismiss();
-                            }
-                        });
+            else if (menuItemIndex == MENU_REMOVE) {
+                // Ask to hide or delete
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.delete_or_hide_title)
+                    .setPositiveButton(R.string.ok, new OnClickListener() {
                         
-                        builder.create().show();    
-                    }
-                    
-                    
-                }
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                            if (selectedPosition == 0) {
+                                // Hide
+                                project.setActive(false);
+                                DatabaseManager.getInstance().updateProject(project);
+                            }
+                            else {
+                                // Delete
+                                DatabaseManager.getInstance().deleteProjectAndItsReports(project);
+                            }
+                            
+                            mAdapter.clear();
+                            mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new OnClickListener() {
+                        
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setSingleChoiceItems(getResources().getStringArray(R.array.delete_or_hide), 0,new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialogInterface, int item) {
+                            
+                        }
+                    });
                 
-                mAdapter.clear();
-                mAdapter.addAll(DatabaseManager.getInstance().getAllProjects(mId));
-                mAdapter.notifyDataSetChanged();
+                builder.create().show();
+                
             }    
         }
         
@@ -214,7 +218,7 @@ public class ProjectListFragment extends ListFragment {
         
         menu.setHeaderTitle(getString(R.string.listmenu_title) + " " + project.getName());
         menu.add(mId, MENU_EDIT, 0, getString(R.string.listmenu_edit));
-        menu.add(mId, MENU_DELETE, 1, getString(R.string.listmenu_delete));
+        menu.add(mId, MENU_REMOVE, 1, getString(R.string.listmenu_remove));
     }
 
     /* (non-Javadoc)

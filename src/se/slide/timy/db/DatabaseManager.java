@@ -3,6 +3,7 @@ package se.slide.timy.db;
 
 import android.content.Context;
 
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 import se.slide.timy.model.Category;
@@ -103,6 +104,16 @@ public class DatabaseManager {
         }
     }
     
+    public void deleteProjectAndItsReports(Project f) {
+        try {
+            List<Report> reports = getAllReports(f.getId());
+            getHelper().getReportDao().delete(reports);
+            getHelper().getProjectDao().delete(f);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public List<Category> getAllCategories() {
         List<Category> categoryLists = null;
         try {
@@ -159,6 +170,18 @@ public class DatabaseManager {
     
     public void deleteCategory(Category f) {
         try {
+            getHelper().getCategoryDao().delete(f);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void deleteCategoryAndItsProjects(Category f) {
+        try {
+            List<Project> projects = getAllProjects(f.getId());
+            for (Project project : projects)
+                deleteProjectAndItsReports(project);
+            
             getHelper().getCategoryDao().delete(f);
         } catch (SQLException e) {
             e.printStackTrace();

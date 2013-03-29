@@ -133,35 +133,49 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             
             return true;
         }
-        else if (item.getItemId() == R.id.menu_delete_category) {
+        else if (item.getItemId() == R.id.menu_remove_category) {
             
             if (mViewPager.getChildCount() < 1)
                 return true;
             
-            if (deleteCategory() && !PreferenceManager.getDefaultSharedPreferences(this).getBoolean("never_notify_category", false)) {
-                // TODO Make this dialog a "don't display again" using custom view, checkbox and preference
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setView(getLayoutInflater().inflate(R.layout.nodelete_alert_dialog, null));
-                builder.setMessage(R.string.delete_category_message);
-                builder.setTitle(R.string.delete_category_title);
-                builder.setPositiveButton(getString(R.string.ok), new OnClickListener() {
+            final Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
+            
+            // Ask to hide or to delete
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.delete_or_hide_title)
+                .setPositiveButton(R.string.ok, new OnClickListener() {
                     
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        CheckBox neverNotifyMeAgain = (CheckBox) ((AlertDialog)dialog).findViewById(R.id.neverNotifyMeAgain);
-                        if (neverNotifyMeAgain.isChecked())
-                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("never_notify_category", true).commit();
+                        int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                        if (selectedPosition == 0) {
+                            // Hide
+                            category.setActive(false);
+                            DatabaseManager.getInstance().updateCategory(category);
+                        }
+                        else {
+                            // Delete
+                            DatabaseManager.getInstance().deleteCategoryAndItsProjects(category);
+                        }
                         
+                        mSectionsPagerAdapter.updateCategoryList();
+                        mIndicator.notifyDataSetChanged();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new OnClickListener() {
+                    
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
+                })
+                .setSingleChoiceItems(getResources().getStringArray(R.array.delete_or_hide), 0,new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int item) {
+                        
+                    }
                 });
-                
-                builder.create().show();
-            }
             
-            mSectionsPagerAdapter.updateCategoryList();
-            mIndicator.notifyDataSetChanged();
-            
+            builder.create().show();
             
         }
         else if (item.getItemId() == R.id.menu_settings) {
@@ -276,6 +290,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         }
     }
 
+    /*
     public boolean deleteCategory() {
         boolean haveReports = false;
         
@@ -306,6 +321,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         return haveReports;
     }
+    */
 
     @Override
     public void onFinishEditDialog(String text, int categoryId, int icon) {

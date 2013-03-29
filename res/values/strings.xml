@@ -46,12 +46,18 @@
     <string name="menu_add_project">Add project</string>
     <string name="menu_add_category">Add category</string>
     <string name="menu_edit_category">Edit category</string>
-    <string name="menu_delete_category">Delete category</string>
+    <string name="menu_remove_category">Remove category</string>
     
     <string name="listmenu_title">Edit</string>
     <string name="listmenu_edit">Edit</string>
-    <string name="listmenu_delete">Delete</string>
+    <string name="listmenu_remove">Remove</string>
     
+    <string name="delete_or_hide_title">Select</string>
+    
+    <string-array name="delete_or_hide">
+        <item>Just hide me</item>
+        <item>Delete me and all my data</item>
+    </string-array>
     
 
 </resources>
