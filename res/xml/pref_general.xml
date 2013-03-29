@@ -18,5 +18,11 @@
         android:entries="@array/pref_list_days_entries"
         android:entryValues="@array/pref_list_days_values"
         android:defaultValue="@array/empty_array" />
+    
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="remind_me_audio"
+        android:dependency="remind_me"
+        android:title="@string/pref_title_remind_me_audio" />
 
 </PreferenceScreen>

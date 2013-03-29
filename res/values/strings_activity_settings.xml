@@ -63,6 +63,7 @@
     <string name="pref_title_remind_me">Reminder</string>
     <string name="pref_title_remind_me_at">Remind me at</string>
     <string name="pref_title_remind_me_when">On these days</string>
+    <string name="pref_title_remind_me_audio">Play sound</string>
     
     <!-- Settings for About -->
     <string name="pref_header_about">About</string>

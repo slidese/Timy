@@ -26,6 +26,8 @@
     <string name="please_wait">Please wait</string>
     <string name="about">About</string>
     <string name="acknowledgements">Acknowledgements</string>
+    <string name="notification_title">Time report</string>
+    <string name="notification_text">Remember to report time for today.</string>
     
     <string-array name="ack_list">
         <item>&lt;b&gt;OrmLite&lt;/b&gt; is used for a simple approach to databas mapping. You can find it here: &lt;a href=""&gt;http://ormlite.com/&lt;/a&gt;</item>
