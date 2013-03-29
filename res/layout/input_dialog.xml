@@ -23,7 +23,13 @@
         <requestFocus />
     </EditText>
     
+    <View
+	    android:layout_width="fill_parent"
+	    android:layout_height="1dip"
+	    android:background="?android:attr/dividerVertical" />
+    
     <LinearLayout
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >

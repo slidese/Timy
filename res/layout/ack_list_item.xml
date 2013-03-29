@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ack_message_text"
+    android:paddingLeft="32dp"
+    android:paddingRight="32dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
+    android:autoLink="web"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+</TextView>

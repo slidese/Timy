@@ -1,13 +1,15 @@
 package se.slide.timy;
 
+import android.app.ListActivity;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.text.Html;
-import android.util.TypedValue;
-import android.widget.LinearLayout;
+import android.text.util.Linkify;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-public class AcknowledgementsActivity extends FragmentActivity {
+public class AcknowledgementsActivity extends ListActivity {
 
     /* (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onCreate(android.os.Bundle)
@@ -16,28 +18,27 @@ public class AcknowledgementsActivity extends FragmentActivity {
     protected void onCreate(Bundle arg0) {
         super.onCreate(arg0);
         
-        setContentView(R.layout.activity_acknowledgements);
+        String[] listOfAcks = getResources().getStringArray(R.array.ack_list);
         
-        LinearLayout layout = (LinearLayout) findViewById(R.id.acknowledgements);
+        setListAdapter(new ArrayAdapter<String>(this, R.layout.ack_list_item, listOfAcks) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View row;
+         
+                if (null == convertView) {
+                    row = getLayoutInflater().inflate(R.layout.ack_list_item, null);
+                } else {
+                    row = convertView;
+                }
+         
+                TextView tv = (TextView) row.findViewById(R.id.ack_message_text);
+                tv.setText(Html.fromHtml(getItem(position)));
+                tv.setAutoLinkMask(Linkify.WEB_URLS);
+         
+                return row;
+            }
+        });
         
-        // This should be used in an ordinary adapter instead.
         
-        String[] ackList = getResources().getStringArray(R.array.ack_list);
-        for (String ack : ackList) {
-            TextView line = createTextView();
-            line.setText(Html.fromHtml(ack));
-            layout.addView(line, layout.getChildCount());
-        }
-        
-        
-    }
-
-    private TextView createTextView() {
-        TextView line = new TextView(this);
-        line.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        line.setTextAppearance(this, android.R.attr.textAppearanceMedium);
-        line.setPadding(0, 10, 0, 10);
-        
-        return line;
     }
 }
