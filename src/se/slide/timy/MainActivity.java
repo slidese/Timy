@@ -290,39 +290,6 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         }
     }
 
-    /*
-    public boolean deleteCategory() {
-        boolean haveReports = false;
-        
-        Category category = mSectionsPagerAdapter.getCategory(mViewPager.getCurrentItem());
-        List<Project> projectList = DatabaseManager.getInstance().getAllProjects(category.getId());
-        for (int i = 0; i < projectList.size(); i++) {
-            Project project = projectList.get(i);
-            List<Report> reports = DatabaseManager.getInstance().getAllReports(project.getId());
-            
-            if (reports == null || reports.size() == 0) {
-                DatabaseManager.getInstance().deleteProject(project);
-            }
-            else {
-                haveReports = true;
-                project.setActive(false);
-                DatabaseManager.getInstance().updateProject(project);
-            }
-            
-        }
-        
-        if (haveReports) {
-            category.setActive(false);
-            DatabaseManager.getInstance().updateCategory(category);
-        }
-        else {
-            DatabaseManager.getInstance().deleteCategory(category);
-        }
-        
-        return haveReports;
-    }
-    */
-
     @Override
     public void onFinishEditDialog(final String text, int categoryId, int icon) {
         
@@ -443,8 +410,6 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     public boolean hasProjectsChanged() {
         return hasProjectDataChanged;
     }
-
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
