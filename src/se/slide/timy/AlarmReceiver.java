@@ -22,6 +22,8 @@ import java.util.Set;
 public class AlarmReceiver extends BroadcastReceiver {
     
     public final static int NOTIFICATION_ID = 0;
+    
+    private MediaPlayer mPlayer;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -50,16 +52,16 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
         }
         
-        final MediaPlayer player = new MediaPlayer();
+        mPlayer = new MediaPlayer();
         try {
-            player.setDataSource(context, alert);
+            mPlayer.setDataSource(context, alert);
             
             final AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
             if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
-                       player.setAudioStreamType(AudioManager.STREAM_ALARM);
-                       player.setLooping(false);
-                       player.prepare();
-                       player.start();
+                mPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+                mPlayer.setLooping(false);
+                mPlayer.prepare();
+                mPlayer.start();
              }
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -75,11 +77,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             @Override
             public void run() {
-                  player.stop();
+                mPlayer.stop();
             }
         };
         
-        int duration = player.getDuration();
+        int duration = mPlayer.getDuration();
 
         Handler handler = new Handler();
         handler.postDelayed(stopSoundRunnable, duration);
