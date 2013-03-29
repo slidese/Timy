@@ -41,8 +41,6 @@ public class BootReceiver extends BroadcastReceiver {
             
             mgr.setRepeating(AlarmManager.RTC, cal.getTimeInMillis(), 1*24*60*60*1000, pi);
             
-            //mgr.setRepeating(AlarmManager.RTC, cal.getTimeInMillis(), 10000, pi);
-            
         }
         
     }
