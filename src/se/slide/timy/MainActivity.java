@@ -324,23 +324,85 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     */
 
     @Override
-    public void onFinishEditDialog(String text, int categoryId, int icon) {
+    public void onFinishEditDialog(final String text, int categoryId, int icon) {
+        
+        // Is this an edit?
         List<Category> categories = null;
-        if (categoryId > 0)
+        if (categoryId > 0) {
             categories = DatabaseManager.getInstance().getCategory(categoryId);
+            
+            if (categories != null && categories.size() > 0) {
+                Category category = categories.get(0);
+                
+                if (category != null) {
+                    category.setActive(true);
+                    category.setName(text);
+                    
+                    addOrUpdateCategory(category);
+                    return;
+                }
+            }
+        }
         
-        Category category;
-        if (categories != null && categories.size() > 0)
-            category = categories.get(0);
-        else
-            category = new Category();
+        // This is an add
+        final List<Category> reactivatedCategories = DatabaseManager.getInstance().getCategory(text);
+        if (reactivatedCategories != null && reactivatedCategories.size() > 0) {
+            // We have old categories to handle
+            final CharSequence[] entries = new CharSequence[reactivatedCategories.size()];
+            for (int i = 0; i < reactivatedCategories.size(); i++) {
+                entries[i] = reactivatedCategories.get(i).getName();
+            }
+            
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.reactivate_old_category)
+                .setSingleChoiceItems(entries, 0, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int item) {
+                    //dialogInterface.dismiss();
+                }
+            });
+            builder.setPositiveButton(getString(R.string.yes_reactivate), new OnClickListener() {
+                
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    ListView lw = ((AlertDialog)dialog).getListView();
+                    Category category = reactivatedCategories.get(lw.getCheckedItemPosition());
+                    category.setActive(true);
+                    
+                    addOrUpdateCategory(category);
+                    
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton(getString(R.string.no_create_new), new OnClickListener() {
+                
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Category category = new Category();
+                    category.setActive(true);
+                    category.setName(text);
+                    
+                    addOrUpdateCategory(category);
+                    
+                    dialog.dismiss();
+                }
+            });
+            builder.create().show();
+            
+        }
+        else {
+            // We have no old categories with the same name, so just create a new one
+            Category category = new Category();
+            category.setActive(true);
+            category.setName(text);
+            
+            addOrUpdateCategory(category);
+        }
         
-        category.setName(text);
-        category.setActive(true);
-        
+    }
+    
+    public void addOrUpdateCategory(Category category) {
         DatabaseManager.getInstance().addOrUpdate(category);
         mSectionsPagerAdapter.updateCategoryList();
-        
     }
     
     public void addProject(Project project) {

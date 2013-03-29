@@ -9,6 +9,7 @@
     <string name="add_time_for">Add time for</string>
     <string name="for_date">For date</string>
     <string name="reactivate_old_project">Reactivate old project</string>
+    <string name="reactivate_old_category">Reactivate old category</string>
     <string name="yes_reactivate">Yes, reactivate</string>
     <string name="no_create_new">No, create new</string>
     <string name="delete_category_title">How deletion works</string>

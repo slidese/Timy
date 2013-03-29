@@ -143,6 +143,16 @@ public class DatabaseManager {
         }
         return categories;
     }
+    
+    public List<Category> getCategory(String name) {
+        List<Category> categories = null;
+        try {
+            categories = getHelper().getCategoryDao().query(getHelper().getCategoryDao().queryBuilder().where().eq("name", name).and().eq("active", false).prepare());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
 
     public void addCategory(Category f) {
         try {
