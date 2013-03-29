@@ -5,7 +5,9 @@ import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -155,6 +157,29 @@ public class SettingsActivity extends PreferenceActivity {
         addPreferencesFromResource(R.xml.pref_about);
         
         
+        // Reminder
+        Preference remindMe = findPreference("remind_me");
+        remindMe.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+            
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean checked = (Boolean) newValue;
+                
+                Context context = preference.getContext();
+                
+                if (checked)
+                    sendBroadcast(new Intent(context, BootReceiver.class));
+                else {
+                    AlarmManager mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    Intent i = new Intent(context, AlarmReceiver.class);
+                    PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, 0);
+                    mgr.cancel(pi);
+                }
+                
+                return true;
+            }
+        });
+        
         // Remind me at
         Preference remindMeAt = findPreference("remind_me_at");
         remindMeAt.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
@@ -163,6 +188,9 @@ public class SettingsActivity extends PreferenceActivity {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 String stringValue = getFormattedTime(newValue.toString());
                 preference.setSummary(stringValue);
+                
+                sendBroadcast(new Intent(preference.getContext(), BootReceiver.class));
+                
                 return true;
             }
         });

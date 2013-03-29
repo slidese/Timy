@@ -64,6 +64,14 @@
                 android:value="se.slide.timy.SettingsActivity" />
         </activity>
         
+        <receiver android:name="BootReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+			</intent-filter>
+		</receiver>
+        
+        <receiver android:name="AlarmReceiver"></receiver>
+        
         <service android:enabled="true" android:name="se.slide.timy.service.SyncService" />
     </application>
 
