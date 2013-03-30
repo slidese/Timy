@@ -3,10 +3,12 @@ package se.slide.timy;
 
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,7 +29,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class HoursActivity extends FragmentActivity implements OnDateSetListener {
+public class HoursActivity extends FragmentActivity {
+    
+    private static final String TAG = "SyncService";
 
     public static final String EXTRA_PROJECT_ID = "project_id";
 
@@ -87,28 +91,37 @@ public class HoursActivity extends FragmentActivity implements OnDateSetListener
                 int day = mCalendar.get(Calendar.DAY_OF_MONTH);
 
                 DatePickerDialog dateDialog = new DatePickerDialog(v.getContext(),
-                        HoursActivity.this, year, month, day);
+                        null, year, month, day);
+                
+                dateDialog.setCancelable(true);
+                dateDialog.setCanceledOnTouchOutside(true);
+                dateDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.ok),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                
+                                DatePicker picker = ((DatePickerDialog)dialog).getDatePicker();
+                                mCalendar.set(Calendar.YEAR, picker.getYear());
+                                mCalendar.set(Calendar.MONTH, picker.getMonth());
+                                mCalendar.set(Calendar.DAY_OF_MONTH, picker.getDayOfMonth());
+
+                                DateFormat dateFormat = android.text.format.DateFormat
+                                        .getDateFormat(getApplicationContext());
+
+                                mDateButton.setText(dateFormat.format(mCalendar.getTime()));
+                            }
+                        });
+                dateDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), 
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //
+                            }
+                        });
+                
                 dateDialog.show();
             }
         });
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see
-     * android.app.DatePickerDialog.OnDateSetListener#onDateSet(android.widget
-     * .DatePicker, int, int, int)
-     */
-    @Override
-    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        mCalendar.set(Calendar.YEAR, year);
-        mCalendar.set(Calendar.MONTH, monthOfYear);
-        mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-        DateFormat dateFormat = android.text.format.DateFormat
-                .getDateFormat(getApplicationContext());
-
-        mDateButton.setText(dateFormat.format(mCalendar.getTime()));
     }
 
     @Override
@@ -143,18 +156,6 @@ public class HoursActivity extends FragmentActivity implements OnDateSetListener
                         mTimePicker.getCurrentMinute(), mCalendar.getTime(), mComment.getText()
                                 .toString());
                 finish();
-
-                /*
-                 * if (mName.getText().toString().trim().length() < 1) return
-                 * true; Intent result = new Intent();
-                 * result.putExtra(EXTRA_PROJECT_NAME,
-                 * mName.getText().toString());
-                 * result.putExtra(EXTRA_PROJECT_COLOR_ID,
-                 * mAdapter.getColor(mPosition).getId()); if (mProject != null)
-                 * result.putExtra(EXTRA_PROJECT_ID, mProject.getId());
-                 * setResult(RESULT_OK, result); finishActivity(RESULT_OK);
-                 * finish(); return true;
-                 */
         }
         return super.onOptionsItemSelected(item);
     }
