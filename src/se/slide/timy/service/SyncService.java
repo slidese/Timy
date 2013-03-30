@@ -1,12 +1,17 @@
 
 package se.slide.timy.service;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.text.format.DateFormat;
 import android.util.Log;
 
@@ -21,6 +26,8 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
+import se.slide.timy.MainActivity;
+import se.slide.timy.R;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
@@ -36,6 +43,8 @@ public class SyncService extends Service {
     public static final int ERROR_BAD_ACCOUNT = 1;
     public static final int ERROR_BAD_CALENDAR = 2;
     public static final int ERROR_NETWORK = 3;
+    
+    public final static int NOTIFICATION_ID = 1;
     
     private static final String TAG = "SyncService";
 
@@ -274,17 +283,50 @@ public class SyncService extends Service {
                 }
                 else {
                     retries = 0;
-                    // Show notification error
+                    // Show notification error ... use string resources
+                    showNotification("Could not save", "I have tried to save the reports to Google Calendar but network errors have prevented it.");
                 }
             }
             else if (result == ERROR_BAD_ACCOUNT) {
-                
+                // Show notification
             }
             else if (result == ERROR_BAD_CALENDAR) {
-                
+                // Show notification
             }
                 
         }
+        
+        
     }
 
+    private void showNotification(String title, String text) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setAutoCancel(true)
+                .setContentTitle(title)
+                .setContentText(text);
+        
+        // Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, MainActivity.class);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        // Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(MainActivity.class);
+        // Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                    0,
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    }
 }
