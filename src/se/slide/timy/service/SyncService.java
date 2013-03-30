@@ -3,6 +3,7 @@ package se.slide.timy.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -69,7 +70,11 @@ public class SyncService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started service");
         
-        createEvents(false);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean syncGoogle = sharedPreferences.getBoolean("sync_google", false);
+        
+        if (syncGoogle)
+            createEvents(false);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -85,8 +90,6 @@ public class SyncService extends Service {
     public void createEvents(boolean retry) {
         if (mTask == null || retry)
             mTask = createTask();
-        
-
         
         if (!mTask.getStatus().equals(AsyncTask.Status.PENDING))
             mTask = createTask();
