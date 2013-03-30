@@ -34,7 +34,7 @@ import se.slide.timy.service.SyncService;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends FragmentActivity implements EditNameDialogListener, HoursDialogListener, ProjectListInterface {
+public class MainActivity extends FragmentActivity implements EditNameDialogListener, ProjectListInterface {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -383,6 +383,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         sendBroadcast(intent);
     }
     
+    /*
     @Override
     public void onAddHoursDialog(int projectId, int hours, int minutes, Date date, String comment) {
         Report report = new Report();
@@ -402,6 +403,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         
         startService(new Intent(this, SyncService.class));
     }
+    */
 
     /* (non-Javadoc)
      * @see se.slide.timy.ProjectListFragment.ProjectListInterface#hasProjectsChanged()

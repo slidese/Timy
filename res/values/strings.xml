@@ -26,6 +26,7 @@
     <string name="done">Done</string>
     <string name="please_wait">Please wait</string>
     <string name="about">About</string>
+    <string name="today">Today</string>
     <string name="acknowledgements">Acknowledgements</string>
     <string name="notification_title">Time report</string>
     <string name="notification_text">Remember to report time for today.</string>
@@ -41,6 +42,7 @@
     
     <string name="project_color">Select project color</string>
     
+    <string name="hint_add_hours">Add hours to</string>
     <string name="hint_add_project">Project name</string>
     <string name="hint_add_category">Category name</string>
     <string name="hint_comment">Comment</string>

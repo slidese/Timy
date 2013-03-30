@@ -16,16 +16,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal" />
         
-        <EditText
-            android:id="@+id/comment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="16dp"
-            android:hint="@string/hint_comment" />
-        
-        <!-- LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -35,25 +26,37 @@
             android:paddingTop="16dp" >
 
             <TextView
-                android:id="@+id/textView1"
+                android:id="@+id/textDateButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/for_date"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <Button
-                android:id="@+id/button1"
+                android:id="@+id/dateButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textAppearance="?android:attr/textAppearanceMedium"
                 style="@android:style/Widget.Holo.Light.Spinner"
-                android:text="Button" />
+                android:text="@string/today" />
             
         </LinearLayout>
         
         <EditText
+            android:id="@+id/comment"
+            android:inputType="textCapSentences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp"
+            android:hint="@string/hint_comment" />
+        
+        
+        
+        <!-- EditText
             android:id="@+id/input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,7 +72,7 @@
 		    
 		</EditText-->
         
-        <LinearLayout
+        <!-- LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
@@ -89,7 +92,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:text="@string/ok" />
-        </LinearLayout>
+        </LinearLayout-->
 
     </LinearLayout>
 

@@ -263,9 +263,16 @@ public class ProjectListFragment extends ListFragment {
         
         Project project = mAdapter.getItem(position);
         
+        /*
         FragmentManager fm = getActivity().getSupportFragmentManager();
         HoursDialog dialog = HoursDialog.newInstance(project.getName(), project.getId());
         dialog.show(fm, "dialog_select_hours");
+        */
+        
+        Intent i = new Intent(getActivity(), HoursActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.putExtra(HoursActivity.EXTRA_PROJECT_ID, project.getId());
+        startActivity(i);
+        
     }
 
     private void attachAdapter() {

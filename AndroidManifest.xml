@@ -47,6 +47,15 @@
         </activity>
         
         <activity
+            android:name="se.slide.timy.HoursActivity"
+            android:label="@string/add_time_for"
+            android:parentActivityName="se.slide.timy.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="se.slide.timy.MainActivity" />
+        </activity>
+        
+        <activity
             android:name="se.slide.timy.AboutActivity"
             android:label="@string/about"
             android:parentActivityName="se.slide.timy.SettingsActivity" >
