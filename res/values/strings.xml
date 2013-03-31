@@ -20,6 +20,8 @@
     <string name="error_bad_calendar">Please make sure you have selected a calendar to sync to</string>
     <string name="error_bad_sync">Tried to sync reports to calendar but after ten tries it is still unsuccessful.</string>
     
+    <string name="no_google_play_on_device">Google Play is not up to date on the device. Please update it before using this app.</string>
+    
     <string name="delete_category_title">How deletion works</string>
     <string name="delete_category_message">This category has not been deleted, it has been deactivated. This is because at least one of its projects have reports attached to them.\n\nProjects with no reports have been deleted. Projects with reports have been deactivated.</string>
     <string name="delete_project_title">Not deleted?</string>

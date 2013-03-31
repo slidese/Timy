@@ -7,8 +7,10 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,7 +33,9 @@ import android.preference.RingtonePreference;
 import android.support.v4.app.NavUtils;
 import android.text.TextUtils;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
@@ -80,6 +84,7 @@ public class SettingsActivity extends PreferenceActivity {
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
     
     static final int REQUEST_ACCOUNT_PICKER = 2;
+    static final int REQUEST_GOOGLE_PLAY_SERVICES = 3;
     
     ProgressDialog mProgress;
 
@@ -236,7 +241,17 @@ public class SettingsActivity extends PreferenceActivity {
                 GoogleAccountCredential credential;
                 credential = GoogleAccountCredential.usingOAuth2(preference.getContext(), CalendarScopes.CALENDAR);
                 credential.setSelectedAccountName(accountName);
-                startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+                
+                // Check for Google Play
+                if (checkGooglePlayServicesAvailable()) {
+                    try {
+                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+                    } catch (ActivityNotFoundException e) {
+                        // I'm not sure but I think this is the error (when testing on AVD)
+                        Toast.makeText(preference.getContext(), R.string.no_google_play_on_device, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                
                 return false;
             }
         });
@@ -538,6 +553,25 @@ public class SettingsActivity extends PreferenceActivity {
         
     }
     
+    /** Check that Google Play services APK is installed and up to date. */
+    private boolean checkGooglePlayServicesAvailable() {
+      final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+      if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
+        showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
+        return false;
+      }
+      return true;
+    }
+    
+    void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
+        runOnUiThread(new Runnable() {
+          public void run() {
+            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
+                connectionStatusCode, SettingsActivity.this, REQUEST_GOOGLE_PLAY_SERVICES);
+            dialog.show();
+          }
+        });
+      }
 
     /* (non-Javadoc)
      * @see android.preference.PreferenceActivity#onActivityResult(int, int, android.content.Intent)
