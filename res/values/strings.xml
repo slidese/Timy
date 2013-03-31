@@ -15,6 +15,11 @@
     
     <string name="no_color">Please set up your Google sync. After that you can select what color your project should have.</string>
     
+    <string name="error_sync_title">Error syncinc</string>
+    <string name="error_bad_account">Please make sure you have a correct Google account setup in preferences</string>
+    <string name="error_bad_calendar">Please make sure you have selected a calendar to sync to</string>
+    <string name="error_bad_sync">Tried to sync reports to calendar but after ten tries it is still unsuccessful.</string>
+    
     <string name="delete_category_title">How deletion works</string>
     <string name="delete_category_message">This category has not been deleted, it has been deactivated. This is because at least one of its projects have reports attached to them.\n\nProjects with no reports have been deleted. Projects with reports have been deactivated.</string>
     <string name="delete_project_title">Not deleted?</string>

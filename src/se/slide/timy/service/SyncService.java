@@ -279,19 +279,22 @@ public class SyncService extends Service {
                 if (retries++ < MAX_RETRIES) {
                     Log.d(TAG, "Retry to create events");
                     updateSyncedEvents(projects); // Comment this line to test MAX_RETRIES
+                    // TODO: Put in a sleep/wait before next retry
                     createEvents(true);
                 }
                 else {
                     retries = 0;
                     // Show notification error ... use string resources
-                    showNotification("Could not save", "I have tried to save the reports to Google Calendar but network errors have prevented it.");
+                    showNotification(getString(R.string.error_sync_title), getString(R.string.error_bad_sync));
                 }
             }
             else if (result == ERROR_BAD_ACCOUNT) {
                 // Show notification
+                showNotification(getString(R.string.error_sync_title), getString(R.string.error_bad_account));
             }
             else if (result == ERROR_BAD_CALENDAR) {
                 // Show notification
+                showNotification(getString(R.string.error_sync_title), getString(R.string.error_bad_calendar));
             }
                 
         }
