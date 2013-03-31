@@ -1,3 +1,4 @@
+
 package se.slide.timy;
 
 import android.content.Context;
@@ -26,15 +27,15 @@ import se.slide.timy.model.Project;
 import java.util.List;
 
 public class ProjectActivity extends FragmentActivity {
-    
+
     public static final int ACTIVITY_CODE = 0;
-    
+
     private int mPosition = 0;
-    
+
     public static final String EXTRA_PROJECT_ID = "project_id";
     public static final String EXTRA_PROJECT_NAME = "project_name";
     public static final String EXTRA_PROJECT_COLOR_ID = "project_colorid";
-    
+
     ColorAdapter mAdapter;
     ImageView mCheckmark;
     EditText mName;
@@ -42,61 +43,62 @@ public class ProjectActivity extends FragmentActivity {
     GridView mGridview;
     TextView mSelectColor;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onCreate(android.os.Bundle)
      */
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        
+
         DatabaseManager.init(this);
-        
+
         setContentView(R.layout.project_dialog);
-        
+
         List<Color> colors = DatabaseManager.getInstance().getColors();
-        
+
         Intent i = getIntent();
-        
+
         if (i != null && i.hasExtra(EXTRA_PROJECT_ID)) {
             int id = i.getIntExtra(EXTRA_PROJECT_ID, -1);
             List<Project> projects = DatabaseManager.getInstance().getProject(id);
-            
+
             if (projects.size() > 0)
                 mProject = projects.get(0);
         }
-        
+
         mName = (EditText) findViewById(R.id.name);
-        
+
         if (mProject != null)
             mName.setText(mProject.getName());
 
         mGridview = (GridView) findViewById(R.id.gridview);
         mAdapter = new ColorAdapter(this, colors, mProject);
         mGridview.setAdapter(mAdapter);
-        
+
         mGridview.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                
+
                 for (int i = 0; i < mGridview.getChildCount(); i++) {
                     View view = mGridview.getChildAt(i);
                     ImageView image = (ImageView) view.findViewById(R.id.checkmark);
                     image.setVisibility(View.INVISIBLE);
                 }
-                
+
                 mCheckmark = (ImageView) v.findViewById(R.id.checkmark);
                 mCheckmark.setVisibility(View.VISIBLE);
-                
+
                 mPosition = position;
             }
         });
-        
+
         mSelectColor = (TextView) findViewById(R.id.select_color);
         if (colors == null || colors.size() < 1)
             mSelectColor.setText(R.string.no_color);
-       
+
         getActionBar().setDisplayHomeAsUpEnabled(true);
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -124,22 +126,22 @@ public class ProjectActivity extends FragmentActivity {
                 finish();
                 return true;
             case R.id.menu_done:
-                
+
                 if (mName.getText().toString().trim().length() < 1)
                     return true;
-                
+
                 Color color = mAdapter.getColor(mPosition);
                 String colorId = "1"; // Default color
                 if (color != null)
                     colorId = color.getId();
-                
+
                 Intent result = new Intent();
                 result.putExtra(EXTRA_PROJECT_NAME, mName.getText().toString());
                 result.putExtra(EXTRA_PROJECT_COLOR_ID, colorId);
-                
+
                 if (mProject != null)
                     result.putExtra(EXTRA_PROJECT_ID, mProject.getId());
-                
+
                 setResult(RESULT_OK, result);
                 finishActivity(RESULT_OK);
                 finish();
@@ -147,7 +149,7 @@ public class ProjectActivity extends FragmentActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-    
+
     public class ColorAdapter extends BaseAdapter {
         private Context mContext;
         private List<Color> mColors;
@@ -162,10 +164,10 @@ public class ProjectActivity extends FragmentActivity {
         public Color getColor(int id) {
             if (mColors == null || mColors.size() == 0 || mColors.size() < id)
                 return null;
-            
+
             return mColors.get(id);
         }
-        
+
         public int getCount() {
             return mColors.size();
         }
@@ -182,15 +184,16 @@ public class ProjectActivity extends FragmentActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             ViewHolder holder = null;
             View view;
-            
-            if (convertView == null) {  // if it's not recycled, initialize some attributes
+
+            if (convertView == null) { // if it's not recycled, initialize some
+                                       // attributes
                 convertView = getLayoutInflater().inflate(R.layout.color_item, null);
-                
+
                 holder = new ViewHolder();
                 holder.frame = (FrameLayout) convertView.findViewById(R.id.color);
                 holder.checkmark = (ImageView) convertView.findViewById(R.id.checkmark);
                 convertView.setTag(holder);
-                
+
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
@@ -199,17 +202,18 @@ public class ProjectActivity extends FragmentActivity {
                 holder.checkmark.setVisibility(View.VISIBLE);
                 mCheckmark = holder.checkmark;
             }
-            
-            holder.frame.setBackgroundColor(android.graphics.Color.parseColor(mColors.get(position).getBackgroundColor()));
-            
+
+            holder.frame.setBackgroundColor(android.graphics.Color.parseColor(mColors.get(position)
+                    .getBackgroundColor()));
+
             return convertView;
         }
-        
+
         /* private view holder class */
         private class ViewHolder {
             FrameLayout frame;
             ImageView checkmark;
         }
-        
+
     }
 }

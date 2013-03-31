@@ -1,3 +1,4 @@
+
 package se.slide.timy;
 
 import android.app.Activity;
@@ -23,53 +24,53 @@ public class ProjectArrayAdapter extends ArrayAdapter<Project> {
         super(context, textViewResourceId, objects);
         this.context = context;
     }
-    
-    
 
-    /* (non-Javadoc)
-     * @see android.widget.ArrayAdapter#getView(int, android.view.View, android.view.ViewGroup)
+    /*
+     * (non-Javadoc)
+     * @see android.widget.ArrayAdapter#getView(int, android.view.View,
+     * android.view.ViewGroup)
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder = null;
         Project project = getItem(position);
-        
+
         LayoutInflater mInflater = (LayoutInflater) context
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        
+
         if (convertView == null) {
-            //convertView = mInflater.inflate(android.R.layout.simple_list_item_1, null);
+            // convertView =
+            // mInflater.inflate(android.R.layout.simple_list_item_1, null);
             convertView = mInflater.inflate(R.layout.project_listview_item, null);
 
             holder = new ViewHolder();
             holder.name = (TextView) convertView.findViewById(R.id.name);
-            //holder.time = (TextView) convertView.findViewById(R.id.alertTime);
+            // holder.time = (TextView)
+            // convertView.findViewById(R.id.alertTime);
             holder.color = (FrameLayout) convertView.findViewById(R.id.color);
-            //holder.icon = (ImageView) convertView.findViewById(R.id.imageView1);
+            // holder.icon = (ImageView)
+            // convertView.findViewById(R.id.imageView1);
             convertView.setTag(holder);
-            
-            
+
         } else
             holder = (ViewHolder) convertView.getTag();
-        
+
         holder.name.setText(project.getName());
-        
+
         List<Color> colors = DatabaseManager.getInstance().getColor(project.getColorId());
         if (colors.size() > 0)
-            holder.color.setBackgroundColor(android.graphics.Color.parseColor(colors.get(0).getBackgroundColor()));
-        
+            holder.color.setBackgroundColor(android.graphics.Color.parseColor(colors.get(0)
+                    .getBackgroundColor()));
+
         /*
-        Animation animation = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
-        animation.setDuration(300);
-        animation.setStartOffset(position * 100);
-        
-        convertView.startAnimation(animation);
-        */
-        
+         * Animation animation = AnimationUtils.loadAnimation(context,
+         * android.R.anim.slide_in_left); animation.setDuration(300);
+         * animation.setStartOffset(position * 100);
+         * convertView.startAnimation(animation);
+         */
+
         return convertView;
     }
-
-
 
     /* private view holder class */
     private class ViewHolder {

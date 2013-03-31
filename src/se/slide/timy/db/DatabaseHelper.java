@@ -71,7 +71,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
         return projectDao;
     }
-    
+
     public Dao<Category, Integer> getCategoryDao() {
         if (categoryDao == null) {
             try {
@@ -82,7 +82,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
         return categoryDao;
     }
-    
+
     public Dao<Report, Integer> getReportDao() {
         if (reportDao == null) {
             try {
@@ -93,7 +93,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
         return reportDao;
     }
-    
+
     public Dao<Color, Integer> getColorsDao() {
         if (colorDao == null) {
             try {

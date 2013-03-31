@@ -82,10 +82,10 @@ public class SettingsActivity extends PreferenceActivity {
      * shown on tablets.
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
-    
+
     static final int REQUEST_ACCOUNT_PICKER = 2;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 3;
-    
+
     ProgressDialog mProgress;
 
     @Override
@@ -146,154 +146,157 @@ public class SettingsActivity extends PreferenceActivity {
         // use the older PreferenceActivity APIs.
 
         PreferenceCategory fakeHeader;
-        
+
         // Add 'general' preferences.
         addPreferencesFromResource(R.xml.pref_general);
-        
+
         fakeHeader = new PreferenceCategory(this);
         fakeHeader.setTitle(R.string.pref_header_sync);
         getPreferenceScreen().addPreference(fakeHeader);
         addPreferencesFromResource(R.xml.pref_data_sync);
-        
+
         fakeHeader = new PreferenceCategory(this);
         fakeHeader.setTitle(R.string.pref_header_about);
         getPreferenceScreen().addPreference(fakeHeader);
         addPreferencesFromResource(R.xml.pref_about);
-        
-        
+
         // Reminder
         Preference remindMe = findPreference("remind_me");
         remindMe.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-            
+
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 boolean checked = (Boolean) newValue;
-                
+
                 Context context = preference.getContext();
-                
+
                 if (checked)
                     sendBroadcast(new Intent(context, BootReceiver.class));
                 else {
-                    AlarmManager mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    AlarmManager mgr = (AlarmManager) context
+                            .getSystemService(Context.ALARM_SERVICE);
                     Intent i = new Intent(context, AlarmReceiver.class);
                     PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, 0);
                     mgr.cancel(pi);
                 }
-                
+
                 return true;
             }
         });
-        
+
         // Remind me at
         Preference remindMeAt = findPreference("remind_me_at");
         remindMeAt.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-            
+
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 String stringValue = getFormattedTime(newValue.toString());
                 preference.setSummary(stringValue);
-                
+
                 sendBroadcast(new Intent(preference.getContext(), BootReceiver.class));
-                
+
                 return true;
             }
         });
-        
+
         String remindMeAtSummary = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getString(remindMeAt.getKey(), "");
-        
+
         if (remindMeAtSummary != null && remindMeAtSummary.length() > 0) {
             remindMeAt.setSummary(getFormattedTime(remindMeAtSummary));
         }
-        
+
         // Remind me at
         Preference remindMeWhen = findPreference("remind_me_when");
         remindMeWhen.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-            
+
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 @SuppressWarnings("unchecked")
                 String value = getFormattedDays((Set<String>) newValue);
                 preference.setSummary(value);
-                
+
                 return true;
             }
         });
-        
+
         Set<String> values = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getStringSet(remindMeWhen.getKey(), new HashSet<String>());
-        
+
         String remindMeWhenSummary = getFormattedDays(values);
         remindMeWhen.setSummary(remindMeWhenSummary);
-        
+
         // Account
         Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
         syncGoogleAccountPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-            
+
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 String accountName = PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString(preference.getKey(), "");
-                
+
                 GoogleAccountCredential credential;
-                credential = GoogleAccountCredential.usingOAuth2(preference.getContext(), CalendarScopes.CALENDAR);
+                credential = GoogleAccountCredential.usingOAuth2(preference.getContext(),
+                        CalendarScopes.CALENDAR);
                 credential.setSelectedAccountName(accountName);
-                
+
                 // Check for Google Play
                 if (checkGooglePlayServicesAvailable()) {
                     try {
-                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+                        startActivityForResult(credential.newChooseAccountIntent(),
+                                REQUEST_ACCOUNT_PICKER);
                     } catch (ActivityNotFoundException e) {
-                        // I'm not sure but I think this is the error (when testing on AVD)
-                        Toast.makeText(preference.getContext(), R.string.no_google_play_on_device, Toast.LENGTH_SHORT).show();
+                        // I'm not sure but I think this is the error (when
+                        // testing on AVD)
+                        Toast.makeText(preference.getContext(), R.string.no_google_play_on_device,
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
-                
+
                 return false;
             }
         });
-        
-        
+
         String accountName = PreferenceManager
-            .getDefaultSharedPreferences(this)
-            .getString(syncGoogleAccountPref.getKey(), "");
+                .getDefaultSharedPreferences(this)
+                .getString(syncGoogleAccountPref.getKey(), "");
         syncGoogleAccountPref.setSummary(accountName);
-        
+
         // Google Calendar
         Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_calendar");
         syncGoogleCalendarPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-            
+
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 String accountName = PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString("sync_google_calendar_account", "");
-                
+
                 if (accountName == null || accountName.length() < 1) {
                     final Preference accountPref = findPreference("sync_google_calendar_account");
                     accountPref.getOnPreferenceClickListener().onPreferenceClick(accountPref);
-                    
+
                     return true;
                 }
-                
+
                 getCalendarData(accountName);
-                
+
                 return true;
             }
         });
-        
+
         String calendarName = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getString("sync_google_calendar_calendar_name", "");
         syncGoogleCalendarPref.setSummary(calendarName);
     }
-    
+
     @SuppressLint("SimpleDateFormat")
     private String getFormattedTime(String prefTime) {
-        String[] pieces=prefTime.split(":");
+        String[] pieces = prefTime.split(":");
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(pieces[0]));
         cal.add(Calendar.MINUTE, Integer.parseInt(pieces[1]));
@@ -305,16 +308,16 @@ public class SettingsActivity extends PreferenceActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        
+
         return "";
     }
-    
+
     private String getFormattedDays(Set<String> values) {
-        
+
         StringBuilder builder = new StringBuilder();
         if (values.contains("1"))
             builder.append("Mon");
-        
+
         if (values.contains("2")) {
             if (builder.length() > 0)
                 builder.append(", ");
@@ -345,34 +348,36 @@ public class SettingsActivity extends PreferenceActivity {
                 builder.append(", ");
             builder.append("Sun");
         }
-        
+
         return builder.toString();
     }
-    
+
     private class GetColorsAsyncTask extends AsyncTask<Void, Void, List<Color>> {
 
         private String accountName;
         private WeakReference<Activity> weakActivity;
-        
+
         public GetColorsAsyncTask(String accountName, Activity activity) {
             this.accountName = accountName;
             weakActivity = new WeakReference<Activity>(activity);
         }
-        
-        /* (non-Javadoc)
+
+        /*
+         * (non-Javadoc)
          * @see android.os.AsyncTask#onPreExecute()
          */
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            
+
             Activity activity = weakActivity.get();
             if (activity != null) {
-                ((SettingsActivity) activity).showProgressDialog(true);    
+                ((SettingsActivity) activity).showProgressDialog(true);
             }
         }
-        
-        /* (non-Javadoc)
+
+        /*
+         * (non-Javadoc)
          * @see android.os.AsyncTask#doInBackground(Params[])
          */
         @Override
@@ -381,147 +386,148 @@ public class SettingsActivity extends PreferenceActivity {
                 final com.google.api.services.calendar.Calendar client;
                 final HttpTransport transport = AndroidHttp.newCompatibleTransport();
                 final JsonFactory jsonFactory = new GsonFactory();
-                
+
                 GoogleAccountCredential credential;
-                credential = GoogleAccountCredential.usingOAuth2(weakActivity.get(), CalendarScopes.CALENDAR);
+                credential = GoogleAccountCredential.usingOAuth2(weakActivity.get(),
+                        CalendarScopes.CALENDAR);
                 credential.setSelectedAccountName(accountName);
                 // Calendar client
                 client = new com.google.api.services.calendar.Calendar.Builder(
-                    transport, jsonFactory, credential).setApplicationName("Timy/1.0")
-                    .build();
-                
+                        transport, jsonFactory, credential).setApplicationName("Timy/1.0")
+                        .build();
+
                 // Fire the request
                 Colors eventColors = client.colors().get().execute();
                 Set<Entry<String, ColorDefinition>> sets = eventColors.getEvent().entrySet();
-                
+
                 List<Color> colors = new ArrayList<Color>();
                 for (Entry<String, ColorDefinition> entry : sets) {
                     Color color = new Color();
                     color.setId(entry.getKey());
-                    
+
                     ColorDefinition colorDefinitions = entry.getValue();
                     color.setBackgroundColor(colorDefinitions.getBackground());
                     color.setForegroundColor(colorDefinitions.getForeground());
-                    
+
                     colors.add(color);
                 }
-                                
+
                 return colors;
             } catch (UserRecoverableAuthIOException e) {
                 startActivityForResult(e.getIntent(), REQUEST_ACCOUNT_PICKER);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            
+
             return null;
         }
 
-        /* (non-Javadoc)
+        /*
+         * (non-Javadoc)
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
         protected void onPostExecute(List<Color> result) {
             super.onPostExecute(result);
-            
+
             Activity activity = weakActivity.get();
             if (activity != null && result != null) {
                 ((SettingsActivity) activity).saveColors(result);
                 ((SettingsActivity) activity).getCalendars(accountName);
             }
         }
-        
+
     }
-    
+
     public void showProgressDialog(boolean show) {
         if (show) {
-            mProgress = ProgressDialog.show(this, getString(R.string.please_wait), getString(R.string.getting_calendar_info), true);
+            mProgress = ProgressDialog.show(this, getString(R.string.please_wait),
+                    getString(R.string.getting_calendar_info), true);
         }
         else {
             if (mProgress != null && mProgress.isShowing())
                 mProgress.dismiss();
         }
     }
-    
+
     public void saveColors(List<Color> colors) {
         DatabaseManager.getInstance().saveColors(colors);
     }
-    
+
     private class GetCalendarsAsyncTask extends AsyncTask<Void, Void, CalendarList> {
-        
+
         private String accountName;
         private WeakReference<Activity> weakActivity;
-        
+
         public GetCalendarsAsyncTask(String accountName, Activity activity) {
             this.accountName = accountName;
             weakActivity = new WeakReference<Activity>(activity);
         }
-        
+
         @Override
         protected CalendarList doInBackground(Void... urls) {
-            
+
             try {
                 final com.google.api.services.calendar.Calendar client;
                 final HttpTransport transport = AndroidHttp.newCompatibleTransport();
                 final JsonFactory jsonFactory = new GsonFactory();
-                
+
                 GoogleAccountCredential credential;
-                credential = GoogleAccountCredential.usingOAuth2(weakActivity.get(), CalendarScopes.CALENDAR);
+                credential = GoogleAccountCredential.usingOAuth2(weakActivity.get(),
+                        CalendarScopes.CALENDAR);
                 credential.setSelectedAccountName(accountName);
                 // Calendar client
                 client = new com.google.api.services.calendar.Calendar.Builder(
-                    transport, jsonFactory, credential).setApplicationName("Timy/1.0")
-                    .build();
-                
+                        transport, jsonFactory, credential).setApplicationName("Timy/1.0")
+                        .build();
+
                 // Fire the request
                 String FIELDS = "id,summary";
                 final String FEED_FIELDS = "items(" + FIELDS + ")";
                 CalendarList feed = client.calendarList().list().setFields(FEED_FIELDS).execute();
-                
-                
-                
-                
+
                 return feed;
             } catch (UserRecoverableAuthIOException e) {
                 startActivityForResult(e.getIntent(), REQUEST_ACCOUNT_PICKER);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            
+
             return null;
         }
 
-        /* (non-Javadoc)
+        /*
+         * (non-Javadoc)
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
         protected void onPostExecute(CalendarList result) {
             super.onPostExecute(result);
-            
+
             Activity activity = weakActivity.get();
             if (activity != null && result != null) {
                 ((SettingsActivity) activity).showProgressDialog(false);
                 ((SettingsActivity) activity).displayCalendarList(result);
             }
         }
-        
+
     }
-    
+
     public void getCalendarData(String accountName) {
         GetColorsAsyncTask getColors = new GetColorsAsyncTask(accountName, SettingsActivity.this);
         getColors.execute();
-        
+
     }
-    
+
     public void getCalendars(String accountName) {
-        GetCalendarsAsyncTask getCalendars = new GetCalendarsAsyncTask(accountName, SettingsActivity.this);
+        GetCalendarsAsyncTask getCalendars = new GetCalendarsAsyncTask(accountName,
+                SettingsActivity.this);
         getCalendars.execute();
     }
-    
+
     public void displayCalendarList(CalendarList feed) {
         List<CalendarListEntry> list = feed.getItems();
-        
+
         final CharSequence[] entries = new CharSequence[list.size()];
         final String[] calendarIds = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
@@ -532,59 +538,70 @@ public class SettingsActivity extends PreferenceActivity {
         int calendarId = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getInt("sync_google_calendar_calendar", 0);
-        
+
         if (calendarId > entries.length)
             calendarId = 0;
-        
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose a calendar")
-            .setSingleChoiceItems(entries, calendarId, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogInterface, int item) {
-                    PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putString("sync_google_calendar_calendar_name", entries[item].toString()).commit();
-                    PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putString("sync_google_calendar_calendar_id", calendarIds[item]).commit();
-                    PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putInt("sync_google_calendar_calendar", item).commit();
-                    Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_calendar");
-                    syncGoogleCalendarPref.setSummary(entries[item]);
-                    dialogInterface.dismiss();
-                }
-            });
+                .setSingleChoiceItems(entries, calendarId, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int item) {
+                        PreferenceManager
+                                .getDefaultSharedPreferences(SettingsActivity.this)
+                                .edit()
+                                .putString("sync_google_calendar_calendar_name",
+                                        entries[item].toString()).commit();
+                        PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit()
+                                .putString("sync_google_calendar_calendar_id", calendarIds[item])
+                                .commit();
+                        PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit()
+                                .putInt("sync_google_calendar_calendar", item).commit();
+                        Preference syncGoogleCalendarPref = findPreference("sync_google_calendar_calendar");
+                        syncGoogleCalendarPref.setSummary(entries[item]);
+                        dialogInterface.dismiss();
+                    }
+                });
 
         builder.create().show();
-        
+
     }
-    
+
     /** Check that Google Play services APK is installed and up to date. */
     private boolean checkGooglePlayServicesAvailable() {
-      final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-      if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
-        showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
-        return false;
-      }
-      return true;
+        final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
+            return false;
+        }
+        return true;
     }
-    
+
     void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
         runOnUiThread(new Runnable() {
-          public void run() {
-            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
-                connectionStatusCode, SettingsActivity.this, REQUEST_GOOGLE_PLAY_SERVICES);
-            dialog.show();
-          }
+            public void run() {
+                Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
+                        connectionStatusCode, SettingsActivity.this, REQUEST_GOOGLE_PLAY_SERVICES);
+                dialog.show();
+            }
         });
-      }
+    }
 
-    /* (non-Javadoc)
-     * @see android.preference.PreferenceActivity#onActivityResult(int, int, android.content.Intent)
+    /*
+     * (non-Javadoc)
+     * @see android.preference.PreferenceActivity#onActivityResult(int, int,
+     * android.content.Intent)
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == REQUEST_ACCOUNT_PICKER && resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
+
+        if (requestCode == REQUEST_ACCOUNT_PICKER && resultCode == Activity.RESULT_OK
+                && data != null && data.getExtras() != null) {
             String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
-            
+
             Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
-            syncGoogleAccountPref.getEditor().putString("sync_google_calendar_account", accountName).commit();
+            syncGoogleAccountPref.getEditor()
+                    .putString("sync_google_calendar_account", accountName).commit();
             syncGoogleAccountPref.setSummary(accountName);
         }
     }
@@ -652,7 +669,7 @@ public class SettingsActivity extends PreferenceActivity {
                 // using RingtoneManager.
                 if (TextUtils.isEmpty(stringValue)) {
                     // Empty values correspond to 'silent' (no ringtone).
-                    //preference.setSummary(R.string.pref_ringtone_silent);
+                    // preference.setSummary(R.string.pref_ringtone_silent);
 
                 } else {
                     Ringtone ringtone = RingtoneManager.getRingtone(
@@ -714,9 +731,9 @@ public class SettingsActivity extends PreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            
-            //bindPreferenceSummaryToValue(findPreference("example_text"));
-            //bindPreferenceSummaryToValue(findPreference("example_list"));
+
+            // bindPreferenceSummaryToValue(findPreference("example_text"));
+            // bindPreferenceSummaryToValue(findPreference("example_list"));
         }
     }
 
@@ -729,14 +746,14 @@ public class SettingsActivity extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            //addPreferencesFromResource(R.xml.pref_notification);
+            // addPreferencesFromResource(R.xml.pref_notification);
 
             // Bind the summaries of EditText/List/Dialog/Ringtone preferences
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            
-            //bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+
+            // bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
         }
     }
 
@@ -755,8 +772,8 @@ public class SettingsActivity extends PreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            
-            //bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+
+            // bindPreferenceSummaryToValue(findPreference("sync_frequency"));
         }
     }
 }

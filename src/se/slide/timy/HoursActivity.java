@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.List;
 
 public class HoursActivity extends FragmentActivity {
-    
+
     private static final String TAG = "SyncService";
 
     public static final String EXTRA_PROJECT_ID = "project_id";
@@ -92,15 +92,15 @@ public class HoursActivity extends FragmentActivity {
 
                 DatePickerDialog dateDialog = new DatePickerDialog(v.getContext(),
                         null, year, month, day);
-                
+
                 dateDialog.setCancelable(true);
                 dateDialog.setCanceledOnTouchOutside(true);
                 dateDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.ok),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                
-                                DatePicker picker = ((DatePickerDialog)dialog).getDatePicker();
+
+                                DatePicker picker = ((DatePickerDialog) dialog).getDatePicker();
                                 mCalendar.set(Calendar.YEAR, picker.getYear());
                                 mCalendar.set(Calendar.MONTH, picker.getMonth());
                                 mCalendar.set(Calendar.DAY_OF_MONTH, picker.getDayOfMonth());
@@ -111,14 +111,14 @@ public class HoursActivity extends FragmentActivity {
                                 mDateButton.setText(dateFormat.format(mCalendar.getTime()));
                             }
                         });
-                dateDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), 
+                dateDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 //
                             }
                         });
-                
+
                 dateDialog.show();
             }
         });

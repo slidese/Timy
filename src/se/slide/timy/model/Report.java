@@ -1,3 +1,4 @@
+
 package se.slide.timy.model;
 
 import com.j256.ormlite.field.DatabaseField;
@@ -10,22 +11,22 @@ public class Report {
 
     @DatabaseField
     private int projectId;
-    
+
     @DatabaseField
     private Date date;
-    
+
     @DatabaseField
     private int hours;
-    
+
     @DatabaseField
     private int minutes;
 
     @DatabaseField
     private String comment;
-    
+
     @DatabaseField
     private boolean googleCalendarSync;
-    
+
     @DatabaseField
     private String googleCalendarEventId;
 
@@ -134,5 +135,4 @@ public class Report {
         this.googleCalendarEventId = googleCalendarEventId;
     }
 
-    
 }

@@ -1,3 +1,4 @@
+
 package se.slide.timy.model;
 
 import com.j256.ormlite.field.DatabaseField;
@@ -11,27 +12,27 @@ public class Project {
 
     @DatabaseField
     private String name;
-    
+
     @DatabaseField
     private int belongsToCategoryId;
-    
+
     @DatabaseField
     private boolean active;
-    
+
     @DatabaseField
     private int icon;
-    
+
     @DatabaseField
     private String colorId;
-    
+
     @DatabaseField
     private String backgroundColor;
-    
+
     @DatabaseField
     private String foregroundColor;
-    
+
     private List<Report> reports;
-    
+
     /**
      * @return the name
      */
@@ -101,7 +102,7 @@ public class Project {
     public List<Report> getReports() {
         if (reports == null)
             reports = new ArrayList<Report>();
-        
+
         return reports;
     }
 
@@ -111,7 +112,7 @@ public class Project {
     public void addReport(Report report) {
         if (reports == null)
             reports = new ArrayList<Report>();
-        
+
         reports.add(report);
     }
 
@@ -128,8 +129,5 @@ public class Project {
     public void setColorId(String colorId) {
         this.colorId = colorId;
     }
-    
-    
+
 }
-    
-    

@@ -1,3 +1,4 @@
+
 package se.slide.timy.model;
 
 import com.j256.ormlite.field.DatabaseField;
@@ -8,7 +9,7 @@ public class Category {
 
     @DatabaseField
     private String name;
-    
+
     @DatabaseField
     private boolean active;
 
@@ -46,5 +47,5 @@ public class Category {
     public void setActive(boolean active) {
         this.active = active;
     }
-    
+
 }

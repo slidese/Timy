@@ -38,22 +38,22 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 public class SyncService extends Service {
-    
+
     public static final int GOOD_RESULT = 0;
     public static final int ERROR_BAD_ACCOUNT = 1;
     public static final int ERROR_BAD_CALENDAR = 2;
     public static final int ERROR_NETWORK = 3;
-    
+
     public final static int NOTIFICATION_ID = 1;
-    
+
     private static final String TAG = "SyncService";
 
     private boolean mIsTaskRunning;
-    
+
     public int retries = 0;
-    
+
     public static final int MAX_RETRIES = 10;
-    
+
     private CreateCalendarEventsTask mTask;
 
     @Override
@@ -64,10 +64,10 @@ public class SyncService extends Service {
     @Override
     public void onCreate() {
         Log.d(TAG, "Created service");
-        
+
         // ORMLite needs to be initiated
         DatabaseManager.init(this);
-        
+
         mIsTaskRunning = false;
     }
 
@@ -78,10 +78,10 @@ public class SyncService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started service");
-        
+
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean syncGoogle = sharedPreferences.getBoolean("sync_google", false);
-        
+
         if (syncGoogle)
             createEvents(false);
 
@@ -91,7 +91,7 @@ public class SyncService extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "Destroyed service.");
-        
+
         mIsTaskRunning = false;
     }
 
@@ -99,67 +99,72 @@ public class SyncService extends Service {
     public void createEvents(boolean retry) {
         if (mTask == null || retry)
             mTask = createTask();
-        
+
         if (!mTask.getStatus().equals(AsyncTask.Status.PENDING))
             mTask = createTask();
-        
+
         if (!mIsTaskRunning)
             mTask.execute();
-        
+
     }
-    
+
     public void runAgain(List<Project> projects) {
         updateSyncedEvents(projects);
-        
-        // Check to see if we got reports added to the database while we were busy creating calendar events
+
+        // Check to see if we got reports added to the database while we were
+        // busy creating calendar events
         if (DatabaseManager.getInstance().haveUnsyncedReports())
             createEvents(false);
     }
-    
+
     public void updateSyncedEvents(List<Project> projects) {
         for (int i = 0; i < projects.size(); i++) {
             List<Report> reports = projects.get(i).getReports();
-            
+
             for (int a = 0; a < reports.size(); a++)
                 DatabaseManager.getInstance().updateReport(reports.get(a));
         }
     }
-    
+
     private CreateCalendarEventsTask createTask() {
         Log.d(TAG, "Create new task");
-        
-        String accountName = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_account", null);
-        String calendarId = PreferenceManager.getDefaultSharedPreferences(this).getString("sync_google_calendar_calendar_id", null);
-        
+
+        String accountName = PreferenceManager.getDefaultSharedPreferences(this).getString(
+                "sync_google_calendar_account", null);
+        String calendarId = PreferenceManager.getDefaultSharedPreferences(this).getString(
+                "sync_google_calendar_calendar_id", null);
+
         List<Project> projects = DatabaseManager.getInstance().getProjectsWithUnsyncedReports();
         List<Color> colors = DatabaseManager.getInstance().getColors();
-        
+
         return new CreateCalendarEventsTask(this, accountName, calendarId, projects, colors);
     }
 
     private class CreateCalendarEventsTask extends AsyncTask<String, Void, Integer> {
-        
+
         private WeakReference<Service> weakService;
         private String accountName;
         private String calendarId;
         private List<Project> projects;
         private List<Color> colors;
-        
-        public CreateCalendarEventsTask(Service service, String accountName, String calendarId, List<Project> projects, List<Color> colors) {
+
+        public CreateCalendarEventsTask(Service service, String accountName, String calendarId,
+                List<Project> projects, List<Color> colors) {
             weakService = new WeakReference<Service>(service);
             this.accountName = accountName;
             this.calendarId = calendarId;
             this.projects = projects;
             this.colors = colors;
         }
-        
-        /* (non-Javadoc)
+
+        /*
+         * (non-Javadoc)
          * @see android.os.AsyncTask#onPreExecute()
          */
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            
+
             mIsTaskRunning = true;
         }
 
@@ -171,30 +176,32 @@ public class SyncService extends Service {
                 return SyncService.ERROR_BAD_ACCOUNT;
             if (calendarId == null)
                 return SyncService.ERROR_BAD_CALENDAR;
-            
+
             GoogleAccountCredential credential;
             final com.google.api.services.calendar.Calendar client;
             final HttpTransport transport = AndroidHttp.newCompatibleTransport();
             final JsonFactory jsonFactory = new GsonFactory();
-            
+
             // Google Accounts
-            credential = GoogleAccountCredential.usingOAuth2(weakService.get(), CalendarScopes.CALENDAR);
+            credential = GoogleAccountCredential.usingOAuth2(weakService.get(),
+                    CalendarScopes.CALENDAR);
             credential.setSelectedAccountName(accountName);
             // Calendar client
             client = new com.google.api.services.calendar.Calendar.Builder(
-                transport, jsonFactory, credential).setApplicationName("Timy/1.0")
-                .build();
-            
+                    transport, jsonFactory, credential).setApplicationName("Timy/1.0")
+                    .build();
+
             for (int i = 0; i < projects.size(); i++) {
                 Project project = projects.get(i);
                 List<Report> reports = project.getReports();
-                
+
                 for (int a = 0; a < reports.size(); a++) {
                     Report report = reports.get(a);
-                    
-                    String allDayTime = DateFormat.format("yyyy-MM-dd", report.getDate()).toString();
-                    DateTime dt = new DateTime(allDayTime);    
-                    
+
+                    String allDayTime = DateFormat.format("yyyy-MM-dd", report.getDate())
+                            .toString();
+                    DateTime dt = new DateTime(allDayTime);
+
                     StringBuilder builder = new StringBuilder();
                     builder.append(project.getName());
                     builder.append(": ");
@@ -206,114 +213,120 @@ public class SyncService extends Service {
                         builder.append(report.getMinutes());
                         builder.append("m");
                     }
-                    
+
                     Event event = new Event();
                     event.setSummary(builder.toString());
                     event.setDescription(report.getComment());
                     event.setStart(new EventDateTime().setDate(dt));
                     event.setEnd(new EventDateTime().setDate(dt));
-                    
+
                     // We need to deal with bad colorIds
                     int colorId = -1;
                     try {
-                        colorId = Integer.valueOf(project.getColorId());    
-                    }
-                    catch (NumberFormatException e) {
+                        colorId = Integer.valueOf(project.getColorId());
+                    } catch (NumberFormatException e) {
                         Log.w(TAG, "Bad color id, using default color");
                     }
-                    
+
                     if (colorId > 0 && colorId <= colors.size())
                         event.setColorId(project.getColorId());
-                    
+
                     boolean update = false;
-                    if (report.getGoogleCalendarEventId() != null && report.getGoogleCalendarEventId().length() > 0) {
+                    if (report.getGoogleCalendarEventId() != null
+                            && report.getGoogleCalendarEventId().length() > 0) {
                         update = true;
                         event.setId(report.getGoogleCalendarEventId());
                     }
-                    
+
                     try {
                         Event createdEvent = null;
                         if (update)
-                            createdEvent = client.events().update(calendarId, report.getGoogleCalendarEventId(), event).execute();
+                            createdEvent = client.events()
+                                    .update(calendarId, report.getGoogleCalendarEventId(), event)
+                                    .execute();
                         else
                             createdEvent = client.events().insert(calendarId, event).execute();
-                        
+
                         report.setGoogleCalendarEventId(createdEvent.getId());
                         report.setGoogleCalendarSync(true);
                         Log.d(TAG, "Created event");
                     } catch (GoogleJsonResponseException e) {
                         if (e.getStatusCode() == 400) {
                             Log.d(TAG, "Error creating event");
-                            
-                            // The event has most likely been manually removed, so clear the eventId
+
+                            // The event has most likely been manually removed,
+                            // so clear the eventId
                             report.setGoogleCalendarEventId(null);
-                            
+
                         }
                         e.printStackTrace();
-                        
+
                         result = SyncService.ERROR_NETWORK;
-                        
+
                     } catch (IOException e) {
                         e.printStackTrace();
-                        
+
                         result = SyncService.ERROR_NETWORK;
-                        
-                    }   
+
+                    }
                 }
-                
-                
+
             }
-            
+
             return result;
         }
 
         @Override
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
-            
+
             mIsTaskRunning = false;
-            
+
             if (result == GOOD_RESULT)
                 runAgain(projects);
             else if (result == ERROR_NETWORK) {
                 if (retries++ < MAX_RETRIES) {
                     Log.d(TAG, "Retry to create events");
-                    updateSyncedEvents(projects); // Comment this line to test MAX_RETRIES
+                    updateSyncedEvents(projects); // Comment this line to test
+                                                  // MAX_RETRIES
                     // TODO: Put in a sleep/wait before next retry
                     createEvents(true);
                 }
                 else {
                     retries = 0;
                     // Show notification error ... use string resources
-                    showNotification(getString(R.string.error_sync_title), getString(R.string.error_bad_sync));
+                    showNotification(getString(R.string.error_sync_title),
+                            getString(R.string.error_bad_sync));
                 }
             }
             else if (result == ERROR_BAD_ACCOUNT) {
                 // Show notification
-                showNotification(getString(R.string.error_sync_title), getString(R.string.error_bad_account));
+                showNotification(getString(R.string.error_sync_title),
+                        getString(R.string.error_bad_account));
             }
             else if (result == ERROR_BAD_CALENDAR) {
                 // Show notification
-                showNotification(getString(R.string.error_sync_title), getString(R.string.error_bad_calendar));
+                showNotification(getString(R.string.error_sync_title),
+                        getString(R.string.error_bad_calendar));
             }
-                
+
         }
-        
-        
+
     }
 
     private void showNotification(String title, String text) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setAutoCancel(true)
-                .setContentTitle(title)
-                .setContentText(text);
-        
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setAutoCancel(true)
+                        .setContentTitle(title)
+                        .setContentText(text);
+
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
 
-        // The stack builder object will contain an artificial back stack for the
+        // The stack builder object will contain an artificial back stack for
+        // the
         // started Activity.
         // This ensures that navigating backward from the Activity leads out of
         // your application to the Home screen.
@@ -324,12 +337,12 @@ public class SyncService extends Service {
         stackBuilder.addNextIntent(resultIntent);
         PendingIntent resultPendingIntent =
                 stackBuilder.getPendingIntent(
-                    0,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                );
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                        );
         mBuilder.setContentIntent(resultPendingIntent);
         NotificationManager mNotificationManager =
-            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 }

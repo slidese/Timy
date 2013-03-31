@@ -1,3 +1,4 @@
+
 package se.slide.timy.model;
 
 import com.j256.ormlite.field.DatabaseField;
@@ -5,10 +6,10 @@ import com.j256.ormlite.field.DatabaseField;
 public class Color {
     @DatabaseField(id = true)
     private String id;
-    
+
     @DatabaseField
     private String backgroundColor;
-    
+
     @DatabaseField
     private String foregroundColor;
 
@@ -53,6 +54,5 @@ public class Color {
     public void setForegroundColor(String foregroundColor) {
         this.foregroundColor = foregroundColor;
     }
-    
-    
+
 }
