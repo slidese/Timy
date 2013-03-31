@@ -7,6 +7,7 @@ package se.slide.timy.preferences;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.preference.DialogPreference;
+import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TimePicker;
@@ -38,6 +39,11 @@ public class TimePreference extends DialogPreference {
     @Override
     protected View onCreateDialogView() {
       picker=new TimePicker(getContext());
+      
+      if (DateFormat.is24HourFormat(getContext()))
+          picker.setIs24HourView(true);
+      else
+          picker.setIs24HourView(false);
       
       return(picker);
     }

@@ -286,7 +286,7 @@ public class SettingsActivity extends PreferenceActivity {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm");
         try {
             Date time = format.parse(prefTime);
-            return SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(time);
+            return android.text.format.DateFormat.getTimeFormat(this).format(time);
         } catch (ParseException e) {
             e.printStackTrace();
         }
