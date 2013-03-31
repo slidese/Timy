@@ -15,7 +15,7 @@
     
     <string name="no_color">Please set up your Google sync. After that you can select what color your project should have.</string>
     
-    <string name="error_sync_title">Error syncinc</string>
+    <string name="error_sync_title">Error syncing</string>
     <string name="error_bad_account">Please make sure you have a correct Google account setup in preferences</string>
     <string name="error_bad_calendar">Please make sure you have selected a calendar to sync to</string>
     <string name="error_bad_sync">Tried to sync reports to calendar but after ten tries it is still unsuccessful.</string>
@@ -49,6 +49,7 @@
     </string-array>
     
     <string name="copyright">&#169; 2013 Mike</string>
+    <string name="getting_colors">Retrieving colors &#8230;</string>
     <string name="getting_calendar_info">Getting calendar info &#8230;</string>
     
     <string name="project_color">Select project color</string>

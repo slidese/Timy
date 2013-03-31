@@ -373,6 +373,7 @@ public class SettingsActivity extends PreferenceActivity {
             Activity activity = weakActivity.get();
             if (activity != null) {
                 ((SettingsActivity) activity).showProgressDialog(true);
+                ((SettingsActivity) activity).setProgressTitle(R.string.getting_colors);
             }
         }
 
@@ -438,6 +439,11 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
     }
+    
+    public void setProgressTitle(int resId) {
+        if (mProgress != null)
+            mProgress.setMessage(getString(resId));
+    }
 
     public void showProgressDialog(boolean show) {
         if (show) {
@@ -462,6 +468,19 @@ public class SettingsActivity extends PreferenceActivity {
         public GetCalendarsAsyncTask(String accountName, Activity activity) {
             this.accountName = accountName;
             weakActivity = new WeakReference<Activity>(activity);
+        }
+
+        /* (non-Javadoc)
+         * @see android.os.AsyncTask#onPreExecute()
+         */
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            
+            Activity activity = weakActivity.get();
+            if (activity != null) {
+                ((SettingsActivity) activity).setProgressTitle(R.string.getting_calendar_info);
+            }
         }
 
         @Override
