@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
@@ -39,6 +40,7 @@ public class ProjectActivity extends FragmentActivity {
     EditText mName;
     Project mProject;
     GridView mGridview;
+    TextView mSelectColor;
 
     /* (non-Javadoc)
      * @see android.support.v4.app.FragmentActivity#onCreate(android.os.Bundle)
@@ -87,6 +89,10 @@ public class ProjectActivity extends FragmentActivity {
                 mPosition = position;
             }
         });
+        
+        mSelectColor = (TextView) findViewById(R.id.select_color);
+        if (colors == null || colors.size() < 1)
+            mSelectColor.setText(R.string.no_color);
        
         getActionBar().setDisplayHomeAsUpEnabled(true);
     }
@@ -122,9 +128,14 @@ public class ProjectActivity extends FragmentActivity {
                 if (mName.getText().toString().trim().length() < 1)
                     return true;
                 
+                Color color = mAdapter.getColor(mPosition);
+                String colorId = "1"; // Default color
+                if (color != null)
+                    colorId = color.getId();
+                
                 Intent result = new Intent();
                 result.putExtra(EXTRA_PROJECT_NAME, mName.getText().toString());
-                result.putExtra(EXTRA_PROJECT_COLOR_ID, mAdapter.getColor(mPosition).getId());
+                result.putExtra(EXTRA_PROJECT_COLOR_ID, colorId);
                 
                 if (mProject != null)
                     result.putExtra(EXTRA_PROJECT_ID, mProject.getId());
@@ -149,6 +160,9 @@ public class ProjectActivity extends FragmentActivity {
         }
 
         public Color getColor(int id) {
+            if (mColors == null || mColors.size() == 0 || mColors.size() < id)
+                return null;
+            
             return mColors.get(id);
         }
         
