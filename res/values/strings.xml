@@ -49,6 +49,7 @@
     </string-array>
     
     <string name="copyright">&#169; 2013 Mike</string>
+    <string name="checking_permission">Checking permission &#8230;</string>
     <string name="getting_colors">Retrieving colors &#8230;</string>
     <string name="getting_calendar_info">Getting calendar info &#8230;</string>
     
@@ -68,6 +69,9 @@
     <string name="listmenu_title">Edit</string>
     <string name="listmenu_edit">Edit</string>
     <string name="listmenu_remove">Remove</string>
+    
+    <string name="google_permission_title">Need permissions</string>
+    <string name="google_permission_message">Please select a Google account in the settings window and make sure to allow Timy to manage your calendars</string>
     
     <string name="delete_or_hide_title">Select</string>
     

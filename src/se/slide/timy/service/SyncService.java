@@ -28,6 +28,7 @@ import com.google.api.services.calendar.model.EventDateTime;
 
 import se.slide.timy.MainActivity;
 import se.slide.timy.R;
+import se.slide.timy.ShowNotification;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
@@ -295,19 +296,19 @@ public class SyncService extends Service {
                 else {
                     retries = 0;
                     // Show notification error ... use string resources
-                    showNotification(getString(R.string.error_sync_title),
-                            getString(R.string.error_bad_sync));
+                    ShowNotification.showNotification(getApplicationContext(), NOTIFICATION_ID, getString(R.string.error_sync_title), getString(R.string.error_bad_sync), ERROR_NETWORK);
+                    
                 }
             }
             else if (result == ERROR_BAD_ACCOUNT) {
                 // Show notification
-                showNotification(getString(R.string.error_sync_title),
-                        getString(R.string.error_bad_account));
+                ShowNotification.showNotification(getApplicationContext(), NOTIFICATION_ID, getString(R.string.error_sync_title), getString(R.string.error_bad_account), ERROR_NETWORK);
+                
             }
             else if (result == ERROR_BAD_CALENDAR) {
                 // Show notification
-                showNotification(getString(R.string.error_sync_title),
-                        getString(R.string.error_bad_calendar));
+                ShowNotification.showNotification(getApplicationContext(), NOTIFICATION_ID, getString(R.string.error_sync_title), getString(R.string.error_bad_calendar), ERROR_NETWORK);
+                
             }
 
         }

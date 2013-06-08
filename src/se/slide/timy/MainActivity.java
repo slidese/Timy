@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.viewpagerindicator.TitlePageIndicator;
 
@@ -75,6 +76,23 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mViewPager);
 
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(ShowNotification.EXTRA_CODE)) {
+            
+            
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle(intent.getStringExtra(ShowNotification.EXTRA_TITLE));
+            alertDialogBuilder.setMessage(intent.getStringExtra(ShowNotification.EXTRA_TEXT));
+            alertDialogBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            alertDialogBuilder.create().show();
+        }
+        
     }
 
     @Override
@@ -82,6 +100,16 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (mViewPager.getChildCount() < 1)
+            menu.getItem(0).setVisible(false);
+        else
+            menu.getItem(0).setVisible(true);
+            
+        return super.onPrepareOptionsMenu(menu);
     }
 
     /*
@@ -168,6 +196,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
 
                             mSectionsPagerAdapter.updateCategoryList();
                             mIndicator.notifyDataSetChanged();
+                            invalidateOptionsMenu();
                         }
                     })
                     .setNegativeButton(R.string.cancel, new OnClickListener() {
@@ -384,6 +413,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     public void addOrUpdateCategory(Category category) {
         DatabaseManager.getInstance().addOrUpdate(category);
         mSectionsPagerAdapter.updateCategoryList();
+        invalidateOptionsMenu();
     }
 
     public void addProject(Project project) {
