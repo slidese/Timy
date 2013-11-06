@@ -20,6 +20,7 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import se.slide.timy.HoursDialog.HoursDialogListener;
@@ -59,6 +60,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Crashlytics.start(this);
         DatabaseManager.init(this);
 
         setContentView(R.layout.activity_main);

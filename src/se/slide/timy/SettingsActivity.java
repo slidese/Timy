@@ -250,6 +250,7 @@ public class SettingsActivity extends PreferenceActivity {
 
             @Override
             public boolean onPreferenceClick(Preference preference) {
+                /*
                 boolean hasPermissions = PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getBoolean("sync_google_permission", false);
@@ -269,6 +270,7 @@ public class SettingsActivity extends PreferenceActivity {
                     
                     return true;
                 }
+                */
                 
                 String accountName = PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
