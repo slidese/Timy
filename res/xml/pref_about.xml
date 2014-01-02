@@ -1,17 +1,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-
-    <Preference android:title="@string/pref_title_about" >
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetPackage="se.slide.timy"
-            android:targetClass="se.slide.timy.AboutActivity" />
-    </Preference>
     
-    <Preference android:title="@string/pref_title_acknowledgements" >
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetPackage="se.slide.timy"
-            android:targetClass="se.slide.timy.AcknowledgementsActivity" />
-    </Preference>
+    <ListPreference
+        android:defaultValue="-1"
+        android:entries="@array/pref_donate_list"
+        android:entryValues="@array/pref_donate_list_values"
+        android:key="donate"
+        android:negativeButtonText="@string/cancel"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_donate" />
     
 </PreferenceScreen>

@@ -14,10 +14,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,14 +23,12 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
 import android.support.v4.app.NavUtils;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.analytics.tracking.android.EasyTracker;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -48,6 +42,9 @@ import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.ColorDefinition;
 import com.google.api.services.calendar.model.Colors;
 
+import se.slide.timy.billing.IabHelper;
+import se.slide.timy.billing.IabResult;
+import se.slide.timy.billing.Purchase;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
 
@@ -75,6 +72,21 @@ import java.util.Set;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends PreferenceActivity {
+    
+    /**
+     * In app billing variables
+     */
+
+    // The helper object
+    IabHelper mHelper;
+    
+    // SKUs for our products: the premium upgrade (non-consumable) and gas (consumable)
+    static final String SKU_SMALL = "donate_small";
+    static final String SKU_MEDIUM = "donate_medium";
+    static final String SKU_LARGE = "donate_large";
+    
+    // (arbitrary) request code for the purchase flow
+    static final int RC_REQUEST = 10001;
 
     static final int REQUEST_GET_PERMISSIONS = 1;
     static final int REQUEST_ACCOUNT_PICKER = 2;
@@ -113,7 +125,70 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+        /* base64EncodedPublicKey should be YOUR APPLICATION'S PUBLIC KEY
+         * (that you got from the Google Play developer console). This is not your
+         * developer public key, it's the *app-specific* public key.
+         *
+         * Instead of just storing the entire literal string here embedded in the
+         * program,  construct the key at runtime from pieces or
+         * use bit manipulation (for example, XOR with some other string) to hide
+         * the actual key.  The key itself is not secret information, but we don't
+         * want to make it easy for an attacker to replace the public key with one
+         * of their own and then fake messages from the server.
+         */
+        
+        /* 
+         * We will ignore the advice given above because this is an open source app; you may what you wish with the code :)
+         */
+        String base64EncodedPublicKey = "";
+        
+        mHelper = new IabHelper(this, base64EncodedPublicKey);
+
+        // enable debug logging (for a production application, you should set this to false).
+        mHelper.enableDebugLogging(false);
+
+        // Start setup. This is asynchronous and the specified listener
+        // will be called once setup completes.
+        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+
+                if (!result.isSuccess()) {
+                    // Oh noes, there was a problem.
+                    // We should send something to Google Analytics...
+                    return;
+                }
+
+                // Have we been disposed of in the meantime? If so, quit.
+                if (mHelper == null) return;
+
+            }
+        });
+        
         setupSimplePreferencesScreen();
+    }
+    
+    @Override
+    public void onStart() {
+      super.onStart();
+      EasyTracker.getInstance(this).activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      EasyTracker.getInstance(this).activityStop(this);
+    }
+    
+    // We're being destroyed. It's important to dispose of the helper here!
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // very important:
+        if (mHelper != null) {
+            mHelper.dispose();
+            mHelper = null;
+        }
     }
 
     /**
@@ -293,7 +368,64 @@ public class SettingsActivity extends PreferenceActivity {
                 .getDefaultSharedPreferences(this)
                 .getString("sync_google_calendar_calendar_name", "");
         syncGoogleCalendarPref.setSummary(calendarName);
+        
+        // Donate
+        Preference prefDonate = findPreference("donate");
+        prefDonate.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
     }
+    
+    /**
+     * A preference value change listener that updates the preference's summary
+     * to reflect its new value.
+     */
+    private Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object value) {
+            String stringValue = value.toString();
+
+            if (preference instanceof ListPreference) {
+             // For list preferences, look up the correct display value in
+                // the preference's 'entries' list.
+                ListPreference listPreference = (ListPreference) preference;
+                int index = listPreference.findIndexOfValue(stringValue);
+                
+                if (preference.getKey().equals("donate")) {
+                    
+                    if (index == 0) {
+                        // Small
+                        onDonateButtonClicked(SKU_SMALL);
+                    }
+                    else if (index == 1) {
+                        // Medium
+                        onDonateButtonClicked(SKU_MEDIUM);
+                    }
+                    else if (index == 2) {
+                        // Large
+                        onDonateButtonClicked(SKU_LARGE);
+                    }
+                    
+                    // Reset to default value; this is not a normal preference we would like to save
+                    return false;
+                }
+                else {
+                    // Set the summary to reflect the new value.
+                    preference
+                            .setSummary(index >= 0 ? listPreference.getEntries()[index]
+                                    : null);
+
+                    // Update the alarm
+                    preference.getContext().sendBroadcast(
+                            new Intent(preference.getContext(), BootReceiver.class));    
+                }
+
+            } else {
+                // For all other preferences, set the summary to the value's
+                // simple string representation.
+                preference.setSummary(stringValue);
+            }
+            return true;
+        }
+    };
 
     @SuppressLint("SimpleDateFormat")
     private String getFormattedTime(String prefTime) {
@@ -650,37 +782,150 @@ public class SettingsActivity extends PreferenceActivity {
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_ACCOUNT_PICKER && resultCode == Activity.RESULT_OK
-                && data != null && data.getExtras() != null) {
-            String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
+        // Pass on the activity result to the helper for handling
+        if (mHelper == null || !mHelper.handleActivityResult(requestCode, resultCode, data)) {
+            // not handled, so handle it ourselves (here's where you'd
+            // perform any handling of activity results not related to in-app
+            // billing...
+            super.onActivityResult(requestCode, resultCode, data);
+            
+            if (requestCode == REQUEST_ACCOUNT_PICKER && resultCode == Activity.RESULT_OK
+                    && data != null && data.getExtras() != null) {
+                String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
 
-            Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
-            syncGoogleAccountPref.getEditor()
-                    .putString("sync_google_calendar_account", accountName).commit();
-            syncGoogleAccountPref.setSummary(accountName);
-            
-            // To trigger the permission dialog, request something from the API
-            getCalendarData(accountName, GetColorsAsyncTask.TASK_MODE_PERMISSION_ONLY);
+                Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
+                syncGoogleAccountPref.getEditor()
+                        .putString("sync_google_calendar_account", accountName).commit();
+                syncGoogleAccountPref.setSummary(accountName);
+                
+                // To trigger the permission dialog, request something from the API
+                getCalendarData(accountName, GetColorsAsyncTask.TASK_MODE_PERMISSION_ONLY);
+            }
+            else if (requestCode == REQUEST_GET_PERMISSIONS && resultCode == Activity.RESULT_OK
+                    && data != null && data.getExtras() != null) {
+                
+                // Save permission
+                Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
+                syncGoogleAccountPref.getEditor()
+                        .putBoolean("sync_google_permission", true).commit();
+                
+            }
+            else if (requestCode == REQUEST_GET_PERMISSIONS && resultCode == Activity.RESULT_CANCELED) {
+                
+                // Save permission - make sure MainActivity shows dialog if this is null/bad
+                Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
+                syncGoogleAccountPref.getEditor()
+                        .putBoolean("sync_google_permission", false).commit();
+                
+            }
         }
-        else if (requestCode == REQUEST_GET_PERMISSIONS && resultCode == Activity.RESULT_OK
-                && data != null && data.getExtras() != null) {
+        else {
+            // onActivityResult handled by IABUtil
+        }
+        
+        
+        
+    }
+    
+    /**
+     * User clicked to donate!
+     * 
+     */
+    public void onDonateButtonClicked(String sku) {
+
+        /* TODO: for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        
+        /*
+         * We will ignore this advice (as well) since we do not need to link this purchase to a "specific user" of our app, see this answer: http://stackoverflow.com/questions/14553515/why-is-it-important-to-set-the-developer-payload-with-in-app-billing
+         */
+        String payload = "";
+
+        mHelper.launchPurchaseFlow(this, sku, RC_REQUEST, mPurchaseFinishedListener, payload);
+    }
+    
+    // Callback for when a purchase is finished
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+
+            // if we were disposed of in the meantime, quit.
+            if (mHelper == null) return;
+
+            if (result.isFailure()) {
+                return;
+            }
+            if (!verifyDeveloperPayload(purchase)) {
+                return;
+            }
+
+            // Purchase successful
+
+            if (purchase.getSku().equals(SKU_SMALL) || purchase.getSku().equals(SKU_MEDIUM) || purchase.getSku().equals(SKU_LARGE)) {
+                mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+            }
+
+        }
+    };
+    
+    // Called when consumption is complete
+    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+        public void onConsumeFinished(Purchase purchase, IabResult result) {
             
-            // Save permission
-            Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
-            syncGoogleAccountPref.getEditor()
-                    .putBoolean("sync_google_permission", true).commit();
+            // if we were disposed of in the meantime, quit.
+            if (mHelper == null) return;
+
+            // We know this is the "gas" sku because it's the only one we consume,
+            // so we don't check which sku was consumed. If you have more than one
+            // sku, you probably should check...
+            if (result.isSuccess()) {
+                // successfully consumed, thank our friendly user
+                alert("Thank you! :)");
+            }
+            else {
+                // something went wrong
+                alert("Something went wrong...");
+            }
             
         }
-        else if (requestCode == REQUEST_GET_PERMISSIONS && resultCode == Activity.RESULT_CANCELED) {
-            
-            // Save permission - make sure MainActivity shows dialog if this is null/bad
-            Preference syncGoogleAccountPref = findPreference("sync_google_calendar_account");
-            syncGoogleAccountPref.getEditor()
-                    .putBoolean("sync_google_permission", false).commit();
-            
-        }
+    };
+    
+    /** Verifies the developer payload of a purchase. */
+    boolean verifyDeveloperPayload(Purchase p) {
+        String payload = p.getDeveloperPayload();
+
+        /*
+         * TODO: verify that the developer payload of the purchase is correct. It will be
+         * the same one that you sent when initiating the purchase.
+         *
+         * WARNING: Locally generating a random string when starting a purchase and
+         * verifying it here might seem like a good approach, but this will fail in the
+         * case where the user purchases an item on one device and then uses your app on
+         * a different device, because on the other device you will not have access to the
+         * random string you originally generated.
+         *
+         * So a good developer payload has these characteristics:
+         *
+         * 1. If two different users purchase an item, the payload is different between them,
+         *    so that one user's purchase can't be replayed to another user.
+         *
+         * 2. The payload must be such that you can verify it even when the app wasn't the
+         *    one who initiated the purchase flow (so that items purchased by the user on
+         *    one device work on other devices owned by the user).
+         *
+         * Using your own server to store and verify developer payloads across app
+         * installations is recommended.
+         */
+
+        return true;
+    }
+    
+    void alert(String message) {
+        AlertDialog.Builder bld = new AlertDialog.Builder(this);
+        bld.setMessage(message);
+        bld.setNeutralButton(R.string.ok, null);
+        bld.create().show();
     }
     
 }

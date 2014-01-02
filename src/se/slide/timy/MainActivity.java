@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -16,24 +15,21 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.CheckBox;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.analytics.tracking.android.EasyTracker;
 import com.viewpagerindicator.TitlePageIndicator;
 
-import se.slide.timy.HoursDialog.HoursDialogListener;
+import org.codechimp.apprater.AppRater;
+
 import se.slide.timy.InputDialog.EditNameDialogListener;
 import se.slide.timy.ProjectListFragment.ProjectListInterface;
 import se.slide.timy.animations.ZoomOutPageTransformer;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Category;
 import se.slide.timy.model.Project;
-import se.slide.timy.model.Report;
-import se.slide.timy.service.SyncService;
 
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity implements EditNameDialogListener,
@@ -64,6 +60,8 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         DatabaseManager.init(this);
 
         setContentView(R.layout.activity_main);
+        
+        AppRater.app_launched(this);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the app.
@@ -218,6 +216,10 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             builder.create().show();
 
         }
+        else if (item.getItemId() == R.id.menu_about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+        }
         else if (item.getItemId() == R.id.menu_settings) {
             startActivity(new Intent(this, SettingsActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
@@ -244,6 +246,18 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
             }
         }
 
+    }
+    
+    @Override
+    public void onStart() {
+      super.onStart();
+      EasyTracker.getInstance(this).activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      EasyTracker.getInstance(this).activityStop(this);
     }
 
     public void addProject(String name, String colorId) {
