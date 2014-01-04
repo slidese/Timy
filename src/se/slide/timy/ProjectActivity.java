@@ -20,6 +20,8 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.analytics.tracking.android.EasyTracker;
+
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Color;
 import se.slide.timy.model.Project;
@@ -148,6 +150,18 @@ public class ProjectActivity extends FragmentActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    @Override
+    public void onStart() {
+      super.onStart();
+      EasyTracker.getInstance(this).activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      EasyTracker.getInstance(this).activityStop(this);
     }
 
     public class ColorAdapter extends BaseAdapter {

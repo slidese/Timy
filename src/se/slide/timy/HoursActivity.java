@@ -19,6 +19,8 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
 
+import com.google.analytics.tracking.android.EasyTracker;
+
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Project;
 import se.slide.timy.model.Report;
@@ -158,6 +160,18 @@ public class HoursActivity extends FragmentActivity {
                 finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    @Override
+    public void onStart() {
+      super.onStart();
+      EasyTracker.getInstance(this).activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+      super.onStop();
+      EasyTracker.getInstance(this).activityStop(this);
     }
 
     public void onAddHoursDialog(int projectId, int hours, int minutes, Date date, String comment) {
