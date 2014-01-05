@@ -17,7 +17,7 @@ public class ShowNotification {
     public static void showNotification(Context ctx, int notificationId, String title, String text, int code) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(ctx)
-                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setSmallIcon(R.drawable.ic_launcher_bw)
                         .setAutoCancel(true)
                         .setContentTitle(title)
                         .setContentText(text);

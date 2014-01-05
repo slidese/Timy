@@ -95,7 +95,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     private void showNotification(Context context) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setSmallIcon(R.drawable.ic_launcher_bw)
                         .setAutoCancel(true)
                         .setContentTitle(context.getString(R.string.notification_title))
                         .setContentText(context.getString(R.string.notification_text));

@@ -75,6 +75,11 @@
     
     <string name="delete_or_hide_title">Select</string>
     
+    <string name="no_content_getting_started_no_html">Add projects for this category by clicking the + button in the upper right corner.</string>
+    
+    <string name="empty_categories_title">No categories</string>
+    <string name="empty_categories_message">To start, click the menu button and add a category.</string>
+    
     <string-array name="delete_or_hide">
         <item>Just hide me</item>
         <item>Delete me and all my data</item>

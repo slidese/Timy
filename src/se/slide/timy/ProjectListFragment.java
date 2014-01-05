@@ -10,11 +10,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.ListFragment;
-import android.util.Log;
+import android.support.v4.app.Fragment;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -22,16 +18,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.ListView;
 
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Project;
-import se.slide.timy.model.Report;
 
 import java.util.List;
 
-public class ProjectListFragment extends ListFragment {
+public class ProjectListFragment extends Fragment implements AdapterView.OnItemClickListener {
 
     private static final String TAG = "ProjectListFragment";
 
@@ -44,6 +38,7 @@ public class ProjectListFragment extends ListFragment {
     private ResponseReceiver mReceiver;
     private ProjectArrayAdapter mAdapter;
     private ProjectListInterface mActivity;
+    private ListView mListView;
 
     public interface ProjectListInterface {
         public boolean hasProjectsChanged();
@@ -134,6 +129,10 @@ public class ProjectListFragment extends ListFragment {
 
         View view = (View) inflater.inflate(R.layout.project_listview, null);
 
+        mListView = (ListView) view.findViewById(android.R.id.list);
+        mListView.setOnItemClickListener(this);
+        mListView.setEmptyView(view.findViewById(R.id.empty_list_view));
+        
         mId = getArguments().getInt(EXTRA_ID);
 
         registerForContextMenu(view);
@@ -269,22 +268,10 @@ public class ProjectListFragment extends ListFragment {
     }
 
     /*
-     * (non-Javadoc)
-     * @see
-     * android.support.v4.app.ListFragment#onListItemClick(android.widget.ListView
-     * , android.view.View, int, long)
-     */
-    @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
+        onListItemClick(l, v, position, id);
 
         Project project = mAdapter.getItem(position);
-
-        /*
-         * FragmentManager fm = getActivity().getSupportFragmentManager();
-         * HoursDialog dialog = HoursDialog.newInstance(project.getName(),
-         * project.getId()); dialog.show(fm, "dialog_select_hours");
-         */
 
         Intent i = new Intent(getActivity(), HoursActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -292,6 +279,7 @@ public class ProjectListFragment extends ListFragment {
         startActivity(i);
 
     }
+    */
 
     private void attachAdapter() {
         List<Project> projectList = DatabaseManager.getInstance().getAllProjects(mId);
@@ -299,7 +287,7 @@ public class ProjectListFragment extends ListFragment {
         mAdapter = new ProjectArrayAdapter(getActivity(),
                 android.R.layout.simple_list_item_1, projectList);
 
-        setListAdapter(mAdapter);
+        mListView.setAdapter(mAdapter);
     }
 
     private void resetAdapter() {
@@ -345,5 +333,21 @@ public class ProjectListFragment extends ListFragment {
             }
 
         }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> arg0, View v, int position, long id) {
+        Project project = mAdapter.getItem(position);
+
+        /*
+         * FragmentManager fm = getActivity().getSupportFragmentManager();
+         * HoursDialog dialog = HoursDialog.newInstance(project.getName(),
+         * project.getId()); dialog.show(fm, "dialog_select_hours");
+         */
+
+        Intent i = new Intent(getActivity(), HoursActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.putExtra(HoursActivity.EXTRA_PROJECT_ID, project.getId());
+        startActivity(i);
     }
 }

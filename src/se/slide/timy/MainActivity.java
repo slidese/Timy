@@ -6,11 +6,13 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
@@ -29,6 +31,7 @@ import se.slide.timy.animations.ZoomOutPageTransformer;
 import se.slide.timy.db.DatabaseManager;
 import se.slide.timy.model.Category;
 import se.slide.timy.model.Project;
+import se.slide.utils.SimpleDialogFragment;
 
 import java.util.List;
 
@@ -66,7 +69,7 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the app.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
+        
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
@@ -76,13 +79,28 @@ public class MainActivity extends FragmentActivity implements EditNameDialogList
         mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mViewPager);
 
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         if (intent != null && intent.hasExtra(ShowNotification.EXTRA_CODE)) {
-            
             
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setTitle(intent.getStringExtra(ShowNotification.EXTRA_TITLE));
             alertDialogBuilder.setMessage(intent.getStringExtra(ShowNotification.EXTRA_TEXT));
+            alertDialogBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    intent.removeExtra(ShowNotification.EXTRA_CODE);
+                    dialog.dismiss();
+                }
+            });
+            alertDialogBuilder.create().show();
+            
+        }
+        
+        if (mSectionsPagerAdapter.getCount() == 0) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle(R.string.empty_categories_title);
+            alertDialogBuilder.setMessage(R.string.empty_categories_message);
             alertDialogBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 
                 @Override
