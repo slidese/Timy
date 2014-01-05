@@ -135,7 +135,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
         
         mId = getArguments().getInt(EXTRA_ID);
 
-        registerForContextMenu(view);
+        registerForContextMenu(mListView);
 
         attachAdapter();
 
