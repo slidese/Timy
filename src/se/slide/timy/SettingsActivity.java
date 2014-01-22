@@ -140,7 +140,7 @@ public class SettingsActivity extends PreferenceActivity {
         /* 
          * We will ignore the advice given above because this is an open source app; you may what you wish with the code :)
          */
-        String base64EncodedPublicKey = "";
+        String base64EncodedPublicKey = getString(R.string.google_base64_encoded_rsa_public_key);
         
         mHelper = new IabHelper(this, base64EncodedPublicKey);
 
