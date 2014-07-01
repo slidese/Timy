@@ -1,0 +1,134 @@
+ECLIPSE ANDROID PROJECT IMPORT SUMMARY
+======================================
+
+Manifest Merging:
+-----------------
+Your project uses libraries that provide manifests, and your Eclipse
+project did not explicitly turn on manifest merging. In Android Gradle
+projects, manifests are always merged (meaning that contents from your
+libraries' manifests will be merged into the app manifest. If you had
+manually copied contents from library manifests into your app manifest
+you may need to remove these for the app to build correctly.
+
+Ignored Files:
+--------------
+The following files were *not* copied into the new Gradle project; you
+should evaluate whether these are still needed in your project and if
+so manually move them:
+
+From AppRater:
+* build.gradle
+* gradle.properties
+* proguard-project.txt
+From Timy3:
+* .gitignore
+* README.md
+* device-2013-04-01-010052.png
+* device-2013-04-01-010233.png
+* ic_launcher-web.png
+* proguard-project.txt
+From ViewPagerIndicator:
+* pom.xml
+From android-Utils:
+* .gitignore
+* README.md
+* proguard-project.txt
+
+Replaced Jars with Dependencies:
+--------------------------------
+The importer recognized the following .jar files as third party
+libraries and replaced them with Gradle dependencies instead. This has
+the advantage that more explicit version information is known, and the
+libraries can be updated automatically. However, it is possible that
+the .jar file in your project was of an older version than the
+dependency we picked, which could render the project not compileable.
+You can disable the jar replacement in the import wizard and try again:
+
+android-support-v4.jar => com.android.support:support-v4:+
+google-http-client-gson-1.13.1-beta.jar => com.google.http-client:google-http-client-gson:1.17.0-rc
+gson-2.1.jar => com.google.code.gson:gson:2.1
+guava-jdk5-13.0.jar => com.google.guava:guava:15.0
+protobuf-java-2.4.1.jar => com.google.protobuf:protobuf-java:2.4.1
+
+Potentially Missing Dependency:
+-------------------------------
+When we replaced the following .jar files with a Gradle dependency, we
+inferred the dependency version number from the filename. This
+specific version may not actually be available from the repository.
+If you get a build error stating that the dependency is missing, edit
+the version number to for example "+" to pick up the latest version
+instead. (This may require you to update your code if the library APIs
+have changed.)
+
+gson-2.1.jar => version 2.1 in com.google.code.gson:gson:2.1
+protobuf-java-2.4.1.jar => version 2.4.1 in com.google.protobuf:protobuf-java:2.4.1
+
+Replaced Libraries with Dependencies:
+-------------------------------------
+The importer recognized the following library projects as third party
+libraries and replaced them with Gradle dependencies instead. This has
+the advantage that more explicit version information is known, and the
+libraries can be updated automatically. However, it is possible that
+the source files in your project were of an older version than the
+dependency we picked, which could render the project not compileable.
+You can disable the library replacement in the import wizard and try
+again:
+
+google-play-services_lib => [com.google.android.gms:play-services:+]
+
+Moved Files:
+------------
+Android Gradle projects use a different directory structure than ADT
+Eclipse projects. Here's how the projects were restructured:
+
+In AppRater:
+* AndroidManifest.xml => appRater/src/main/AndroidManifest.xml
+* assets/ => appRater/src/main/assets/
+* res/ => appRater/src/main/res/
+* src/ => appRater/src/main/java/
+In ViewPagerIndicator:
+* AndroidManifest.xml => viewPagerIndicator/src/main/AndroidManifest.xml
+* assets/ => viewPagerIndicator/src/main/assets/
+* res/ => viewPagerIndicator/src/main/res/
+* src/ => viewPagerIndicator/src/main/java/
+In android-Utils:
+* AndroidManifest.xml => androidUtils/src/main/AndroidManifest.xml
+* assets/ => androidUtils/src/main/assets/
+* res/ => androidUtils/src/main/res/
+* src/ => androidUtils/src/main/java/
+In Timy3:
+* AndroidManifest.xml => timy3/src/main/AndroidManifest.xml
+* assets/ => timy3/src/main/assets/
+* libs/crashlytics.jar => timy3/libs/crashlytics.jar
+* libs/google-api-client-1.13.2-beta.jar => timy3/libs/google-api-client-1.13.2-beta.jar
+* libs/google-api-client-android-1.13.2-beta.jar => timy3/libs/google-api-client-android-1.13.2-beta.jar
+* libs/google-api-services-calendar-v3-rev30-1.13.2-beta.jar => timy3/libs/google-api-services-calendar-v3-rev30-1.13.2-beta.jar
+* libs/google-http-client-1.13.1-beta.jar => timy3/libs/google-http-client-1.13.1-beta.jar
+* libs/google-http-client-android-1.13.1-beta.jar => timy3/libs/google-http-client-android-1.13.1-beta.jar
+* libs/google-http-client-jackson-1.13.1-beta.jar => timy3/libs/google-http-client-jackson-1.13.1-beta.jar
+* libs/google-http-client-jackson2-1.13.1-beta.jar => timy3/libs/google-http-client-jackson2-1.13.1-beta.jar
+* libs/google-http-client-protobuf-1.13.1-beta.jar => timy3/libs/google-http-client-protobuf-1.13.1-beta.jar
+* libs/jackson-core-asl-1.9.9.jar => timy3/libs/jackson-core-asl-1.9.9.jar
+* libs/jsr305-1.3.9.jar => timy3/libs/jsr305-1.3.9.jar
+* libs/libGoogleAnalyticsServices.jar => timy3/libs/libGoogleAnalyticsServices.jar
+* libs/ormlite-android-4.42.jar => timy3/libs/ormlite-android-4.42.jar
+* libs/ormlite-core-4.42.jar => timy3/libs/ormlite-core-4.42.jar
+* lint.xml => timy3/lint.xml
+* res/ => timy3/src/main/res/
+* src/ => timy3/src/main/java/
+* src/com/android/vending/billing/IInAppBillingService.aidl => timy3/src/main/aidl/com/android/vending/billing/IInAppBillingService.aidl
+
+Next Steps:
+-----------
+You can now build the project. The Gradle project needs network
+connectivity to download dependencies.
+
+Bugs:
+-----
+If for some reason your project does not build, and you determine that
+it is due to a bug or limitation of the Eclipse to Gradle importer,
+please file a bug at http://b.android.com with category
+Component-Tools.
+
+(This import summary is for your information only, and can be deleted
+after import once you are satisfied with the results.)

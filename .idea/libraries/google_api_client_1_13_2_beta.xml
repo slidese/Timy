@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="google-api-client-1.13.2-beta">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/timy3/libs/google-api-client-1.13.2-beta.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

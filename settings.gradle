@@ -1,0 +1,4 @@
+include ':appRater'
+include ':viewPagerIndicator'
+include ':androidUtils'
+include ':timy3'

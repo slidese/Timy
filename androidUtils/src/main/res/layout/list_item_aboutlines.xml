@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--suppress AndroidLintUselessParent -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:utils="http://schemas.android.com/apk/res-auto/se.slide.utils"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="16dp"
+    android:paddingBottom="0dp"
+    android:orientation="vertical"
+    android:divider="@null"
+	android:dividerHeight="0dp"
+	android:showDividers="none"
+    >
+    
+    <se.slide.utils.typefaces.TypefacedTextView
+        android:id="@+id/row1"
+        utils:typeface="Roboto-Bold.ttf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:gravity="center"
+        android:textAllCaps="true"
+        android:textColor="@color/white_medium"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        />
+    
+    <se.slide.utils.typefaces.TypefacedTextView
+        android:id="@+id/row2"
+        utils:typeface="Roboto-Light.ttf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:gravity="center"
+        android:textColor="@color/white_dark"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        />
+    
+</LinearLayout>
